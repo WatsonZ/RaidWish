@@ -1,0 +1,5 @@
+<Bindings>
+    <Binding name="RAIDWISH_TOGGLE" header="RAIDWISH">
+        RaidWish_OnCompartmentClick("RaidWish", "LeftButton")
+    </Binding>
+</Bindings>

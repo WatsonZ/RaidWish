@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>许愿助手 界面效果图</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Microsoft YaHei","PingFang SC",sans-serif;font-size:13px;color:#ddd;
+  background:radial-gradient(1200px 700px at 30% 20%,#2b3a4a 0,#141b24 55%,#0a0d12 100%);min-height:100vh}
+.top{display:flex;flex-wrap:wrap;gap:18px;align-items:center;padding:14px 20px;background:rgba(0,0,0,.45);border-bottom:1px solid #000}
+.top b{color:#fff;font-weight:600;font-size:14px}
+.seg{display:inline-flex;border:1px solid #555;border-radius:4px;overflow:hidden}
+.seg button{background:transparent;color:#bbb;border:0;padding:6px 14px;font:inherit;cursor:pointer}
+.seg button.on{background:#e6e6e6;color:#111}
+.note{color:#9aa3ad;font-size:12px}
+.stage{padding:28px 20px 60px;display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start;justify-content:center}
+.cap{color:#9aa3ad;font-size:12px;margin:0 0 8px}
+
+/* ---------- 两套皮肤的变量 ---------- */
+[data-skin=flat]{--bg:#16181c;--bg2:#1d2025;--row:transparent;--alt:rgba(255,255,255,.025);--hover:#262b33;--line:#2a2e36;
+  --text:#e8e8e8;--dim:#858c96;--title:#fff;--accent:#4aa3ff;--btn:#272c34;--btnh:#323843;--btnb:#3a404a;--btnt:#e8e8e8;
+  --rad:3px;--pb:1px solid #000;--pin:inset 0 0 0 1px #2c3038;--hd:#1d2025;--inp:#0f1114;--inpb:#2c3038}
+[data-skin=blizz]{--bg:#17120d;--bg2:#221a12;--row:transparent;--alt:rgba(255,255,255,.035);--hover:rgba(255,209,0,.09);--line:#3b2f20;
+  --text:#fff;--dim:#b5a688;--title:#ffd100;--accent:#ffd100;--btn:linear-gradient(#8f1d12,#5a0e08);--btnh:linear-gradient(#b12a1c,#74140c);
+  --btnb:#b8943f;--btnt:#ffd100;--rad:4px;--pb:2px solid #8a6d3b;--pin:inset 0 0 0 1px #2a2015,inset 0 1px 0 2px rgba(255,230,160,.08);
+  --hd:linear-gradient(#3b2d1c,#211810);--inp:#0d0a07;--inpb:#5b4829}
+[data-skin=blizz] .panel{background:
+  repeating-linear-gradient(115deg,rgba(255,255,255,.012) 0 2px,transparent 2px 7px),linear-gradient(#1d160f,#130f0a)}
+[data-skin=blizz] .panel{outline:1px solid #000;border-radius:6px}
+[data-skin=blizz] .ptitle{justify-content:center;text-shadow:0 1px 0 #000;letter-spacing:1px}
+[data-skin=blizz] .btn{text-shadow:0 1px 0 #000;box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+[data-skin=blizz] .tab.on{background:linear-gradient(#3b2d1c,#17120d)}
+
+/* ---------- 公共结构 ---------- */
+.panel{background:var(--bg);border:var(--pb);box-shadow:var(--pin),0 10px 40px rgba(0,0,0,.65);border-radius:var(--rad);color:var(--text);overflow:hidden}
+.phead{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--hd);border-bottom:1px solid var(--line);position:relative}
+.ptitle{flex:1;display:flex;color:var(--title);font-size:14px;font-weight:600}
+.pclose{width:20px;height:20px;line-height:18px;text-align:center;border:1px solid var(--btnb);border-radius:var(--rad);background:var(--btn);color:var(--btnt);cursor:pointer;font-size:12px}
+.status{display:flex;align-items:center;gap:8px;padding:8px 14px;color:var(--dim);font-size:12px;border-bottom:1px solid var(--line)}
+.dot{width:8px;height:8px;border-radius:50%;background:#3ddc68;box-shadow:0 0 6px #3ddc68}
+.tabs{display:flex;gap:2px;padding:8px 12px 0;border-bottom:1px solid var(--line)}
+.tab{padding:7px 16px;color:var(--dim);cursor:pointer;border:1px solid transparent;border-bottom:0;border-radius:var(--rad) var(--rad) 0 0}
+.tab.on{color:var(--title);background:var(--bg2);border-color:var(--line)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:26px;padding:0 14px;background:var(--btn);border:1px solid var(--btnb);border-radius:var(--rad);
+  color:var(--btnt);font:inherit;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--btnh)}
+.btn.sm{height:22px;padding:0 8px;font-size:12px}
+.btn.ghost{background:transparent;border-color:var(--line);color:var(--dim)}
+.inp{height:26px;padding:0 8px;background:var(--inp);border:1px solid var(--inpb);border-radius:var(--rad);color:var(--text);font:inherit;outline:0}
+.bar{display:flex;align-items:center;gap:8px;padding:10px 14px}
+.sp{flex:1}
+.list{height:330px;overflow:auto}
+.list::-webkit-scrollbar{width:8px}.list::-webkit-scrollbar-thumb{background:var(--btnb);border-radius:4px}
+.row{display:grid;grid-template-columns:150px minmax(0,1fr) 96px;align-items:center;gap:10px;padding:0 14px;height:36px;background:var(--row)}
+.row:nth-child(even){background:var(--alt)}
+.row:hover{background:var(--hover)}
+.row.head{height:26px;color:var(--dim);font-size:12px;background:var(--bg2);border-bottom:1px solid var(--line)}
+.who{display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden}
+.cls{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#111;border:1px solid rgba(0,0,0,.6)}
+.wish{display:flex;align-items:center;gap:12px;overflow:hidden;white-space:nowrap}
+.item{display:inline-flex;align-items:center;gap:6px}
+.ico{flex:none;width:22px;height:22px;border-radius:3px;border:1px solid currentColor;background:linear-gradient(135deg,rgba(255,255,255,.28),rgba(0,0,0,.35)),currentColor;opacity:.95}
+.item.done{opacity:.4;text-decoration:line-through}
+.dup{font-size:11px;color:#111;background:#ffb020;border-radius:8px;padding:0 6px;margin-left:2px;line-height:15px}
+.none{color:var(--dim);font-style:italic}
+.score{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.score b{display:inline-block;min-width:26px;text-align:center;padding:1px 0;border-radius:var(--rad);background:var(--bg2);border:1px solid var(--line);font-weight:600}
+.score .pm{visibility:hidden;width:18px;height:18px;line-height:15px;text-align:center;border:1px solid var(--btnb);border-radius:var(--rad);background:var(--btn);color:var(--btnt);cursor:pointer}
+[data-role=leader] .row:hover .pm{visibility:visible}
+.foot{display:flex;gap:14px;padding:8px 14px;border-top:1px solid var(--line);color:var(--dim);font-size:12px}
+.foot a{color:var(--accent);cursor:pointer}
+.q4{color:#a335ee}.q5{color:#ff8000}.q3{color:#0070dd}
+.only-leader,.only-member{display:none}
+[data-role=leader] .only-leader{display:flex}
+[data-role=member] .only-member{display:flex}
+.mine{align-items:center;gap:8px;color:var(--dim)}
+.mine b{font-weight:400}
+.ok{color:#3ddc68}
+
+/* 掉落与拍卖 */
+.now{margin:12px 14px;padding:12px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--rad)}
+.prog{height:6px;background:var(--inp);border:1px solid var(--inpb);border-radius:3px;overflow:hidden;margin-top:10px}
+.prog i{display:block;height:100%;width:72%;background:var(--accent)}
+.lrow{grid-template-columns:54px minmax(0,1fr) 170px}
+.res{text-align:right;color:var(--dim)}
+
+/* 设置 */
+.set{display:grid;grid-template-columns:150px minmax(0,1fr);height:392px}
+.cat{border-right:1px solid var(--line);padding:8px 0;background:var(--bg2)}
+.cat div{padding:8px 14px;color:var(--dim);cursor:pointer}
+.cat div.on{color:var(--title);background:var(--hover)}
+.opt{padding:14px 18px}
+.opt h4{margin:0 0 10px;font-size:13px;color:var(--title);font-weight:600}
+.opt label{display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer}
+.opt .hint{color:var(--dim);font-size:12px;margin:2px 0 14px 24px}
+
+/* 拍卖弹窗 */
+.pop{width:300px}
+.pop .body{padding:12px 14px}
+.pitem{display:flex;align-items:center;gap:10px}
+.pitem .ico{width:34px;height:34px}
+.pitem .nm{font-size:14px;font-weight:600}
+.pmeta{color:var(--dim);font-size:12px;margin-top:2px}
+.star{color:#ffd100}
+.bids{display:flex;gap:6px;margin-top:12px}
+.bids .btn{flex:1;padding:0}
+.ctl{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer}
+.menu{margin-top:6px;width:240px}
+.menu div{display:flex;align-items:center;gap:8px;padding:6px 10px}
+.menu div:hover{background:var(--hover)}
+</style>
+</head>
+<body>
+<div class="top">
+  <b>许愿助手 · 界面效果图</b>
+  <span>界面风格 <span class="seg" id="skinSeg"><button data-v="flat" class="on">扁平暗色</button><button data-v="blizz">暴雪原生</button></span></span>
+  <span>身份 <span class="seg" id="roleSeg"><button data-v="leader" class="on">团长</button><button data-v="member">团员</button></span></span>
+  <span class="note">网页模拟，游戏内的字体和贴图会有差别。角色与物品为示例数据。</span>
+</div>
+
+<div class="stage" id="stage" data-skin="flat" data-role="leader">
+
+  <div>
+    <p class="cap">主窗口</p>
+    <div class="panel" style="width:600px">
+      <div class="phead"><span class="ptitle">许愿助手</span><span class="pclose">✕</span></div>
+      <div class="status"><span class="dot"></span><span style="color:var(--text)">许愿进行中</span><span>·</span><span>许愿团长 <span style="color:#F48CBA">圣光老王</span></span></div>
+      <div class="tabs" id="tabs"><div class="tab on" data-t="wish">许愿</div><div class="tab" data-t="loot">掉落与拍卖</div><div class="tab" data-t="set">设置</div></div>
+
+      <div id="p-wish">
+        <div class="bar only-leader">
+          <button class="btn">停止许愿</button><span class="sp"></span>
+          <input class="inp" placeholder="搜索角色或物品" style="width:170px">
+          <button class="btn ghost" title="通报、初始化分数、清空、导出">更多 ▾</button>
+        </div>
+        <div class="bar only-member mine">
+          <span>你的许愿</span><span class="item q4"><span class="ico"></span>碧空之歌</span><span class="ok">✔ 团长已记录</span><span class="sp"></span>
+          <input class="inp" placeholder="搜索角色或物品" style="width:170px">
+        </div>
+        <div class="row head"><span>角色</span><span>许愿</span><span style="text-align:right">分数</span></div>
+        <div class="list" id="wishList"></div>
+        <div class="foot"><span>已许愿 9</span><a>未许愿 3</a><span>重复 2 件</span><span class="sp"></span><span>同步正常</span></div>
+      </div>
+
+      <div id="p-loot" hidden>
+        <div class="now">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="item q4" style="font-weight:600"><span class="ico"></span>碧空之歌</span>
+            <span style="color:var(--dim)">出分中 · 最高 <span style="color:#C69B6D">铁壁阿牛</span> 3 分 · 剩余 18 秒</span><span class="sp"></span>
+            <span class="only-leader" style="gap:6px"><button class="btn sm">数秒</button><button class="btn sm">直接 Roll</button><button class="btn sm ghost">取消</button></span>
+          </div>
+          <div class="prog"><i></i></div>
+        </div>
+        <div class="row head lrow"><span>时间</span><span>物品</span><span style="text-align:right">结果</span></div>
+        <div class="list" id="lootList" style="height:262px"></div>
+        <div class="foot"><span>本次掉落 6 件</span><span>已拍 2</span><span>待拍 3</span><span class="sp"></span><span>只记录 紫、橙</span></div>
+      </div>
+
+      <div id="p-set" hidden>
+        <div class="set">
+          <div class="cat"><div class="on">界面</div><div>许愿规则</div><div>开团公告与宣言</div><div>拍卖</div><div>掉落记录</div><div>黑名单</div><div>数据</div></div>
+          <div class="opt">
+            <h4>界面风格</h4>
+            <label><input type="radio" name="sk" value="flat" checked> 扁平暗色</label>
+            <label><input type="radio" name="sk" value="blizz"> 暴雪原生</label>
+            <div class="hint">切换后立即生效，不需要重载界面。</div>
+            <h4>显示</h4>
+            <label><input type="checkbox" checked> 显示小地图按钮</label>
+            <label><input type="checkbox" checked> 没有拍卖时显示"待拍"按钮（团长、助理）</label>
+            <label>窗口缩放 <input type="range" min="80" max="130" value="100" style="width:140px"></label>
+            <div style="margin-top:14px"><button class="btn">重置所有窗口位置</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <p class="cap">拍卖弹窗 · 团长开拍后，所有团员屏幕上弹出</p>
+    <div class="panel pop">
+      <div class="phead"><span class="ptitle">拍卖</span><span class="pclose" title="收起">—</span></div>
+      <div class="body">
+        <div class="pitem q4"><span class="ico"></span><div><div class="nm">碧空之歌</div><div class="pmeta"><span class="star">★</span> 你许愿了这件装备</div></div></div>
+        <div class="prog"><i></i></div>
+        <div class="pmeta" style="margin-top:8px">当前最高 <span style="color:#C69B6D">铁壁阿牛</span> 3 分 · 剩余 18 秒</div>
+        <div class="bids"><button class="btn">1 分</button><button class="btn">2 分</button><button class="btn">3 分</button><button class="btn">4 分</button><button class="btn">9 分</button></div>
+        <div class="ctl" style="border:0;padding-top:0"><button class="btn ghost" style="flex:1">不要这件</button></div>
+      </div>
+    </div>
+
+    <p class="cap" style="margin-top:26px">拍卖弹窗 · 团长看到的，多一排主持用的按钮</p>
+    <div class="panel pop">
+      <div class="phead"><span class="ptitle">拍卖</span><span class="pclose" title="收起">—</span></div>
+      <div class="body">
+        <div class="pitem q4"><span class="ico"></span><div><div class="nm">碧空之歌</div><div class="pmeta">出分中 · 已有 3 人出分</div></div></div>
+        <div class="prog"><i></i></div>
+        <div class="pmeta" style="margin-top:8px">当前最高 <span style="color:#C69B6D">铁壁阿牛</span> 3 分 · 剩余 18 秒</div>
+        <div class="bids"><button class="btn">1 分</button><button class="btn">2 分</button><button class="btn">3 分</button><button class="btn">4 分</button><button class="btn">9 分</button></div>
+        <div class="ctl"><button class="btn" style="flex:1">数秒</button><button class="btn" style="flex:1">直接 Roll</button><button class="btn ghost" style="flex:1">取消拍卖</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <p class="cap">"待拍"按钮 · 没有拍卖时，团长屏幕上只有它</p>
+    <div class="panel pill"><span style="color:var(--title)">待拍</span><b style="color:var(--accent)">3</b><span style="color:var(--dim)">▾</span></div>
+    <p class="cap" style="margin-top:14px">点开后选一件就开拍</p>
+    <div class="panel menu">
+      <div class="q4"><span class="ico"></span>无坚不摧之力</div>
+      <div class="q4"><span class="ico"></span>龙牙饰物</div>
+      <div class="q5"><span class="ico"></span>雷霆之怒，逐风者的祝福之剑</div>
+    </div>
+
+    <p class="cap" style="margin-top:26px">Roll 阶段 · 只有同分的人看到 Roll 按钮</p>
+    <div class="panel pop">
+      <div class="phead"><span class="ptitle">拍卖</span><span class="pclose">—</span></div>
+      <div class="body">
+        <div class="pitem q4"><span class="ico"></span><div><div class="nm">碧空之歌</div><div class="pmeta">同分 Roll · <span style="color:#C69B6D">铁壁阿牛</span>、<span style="color:#3FC7EB">冰霜小法</span></div></div></div>
+        <div class="prog"><i style="width:40%"></i></div>
+        <div class="pmeta" style="margin-top:8px">当前最高 <span style="color:#C69B6D">铁壁阿牛</span> 87 · 剩余 6 秒</div>
+        <div class="bids"><button class="btn">Roll</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var CLS={战:'#C69B6D',法:'#3FC7EB',德:'#FF7C0A',术:'#8788EE',猎:'#AAD372',骑:'#F48CBA',牧:'#FFFFFF',贼:'#FFF468',萨:'#0070DD'};
+var W=[
+ ['战','铁壁阿牛',[[4,'无坚不摧之力',0,2]],4],
+ ['法','冰霜小法',[[4,'碧空之歌',0],[4,'迅击戒指',1]],1],
+ ['德','月下小德',[[4,'无坚不摧之力',0,2]],4],
+ ['术','暗影术术',[],4],
+ ['猎','百步穿杨',[[5,'雷霆之怒，逐风者的祝福之剑',0]],4],
+ ['骑','圣光老王',[[4,'龙牙饰物',0,2]],4],
+ ['牧','治疗不动',[[4,'龙牙饰物',0,2]],4],
+ ['贼','背后一刀',[],4],
+ ['萨','图腾大师',[[4,'风暴之眼',0]],3],
+ ['战','怒气满了',[[4,'泰坦腰带',0]],4],
+ ['法','奥术飞弹',[[4,'法师之刃',0]],4],
+ ['牧','暗牧不奶',[],4]
+];
+function item(a){return '<span class="item q'+a[0]+(a[2]?' done':'')+'"><span class="ico"></span>'+a[1]+(a[3]?'<span class="dup" title="许愿人数">'+a[3]+'</span>':'')+'</span>'}
+document.getElementById('wishList').innerHTML=W.map(function(r){
+  return '<div class="row"><span class="who"><span class="cls" style="background:'+CLS[r[0]]+'">'+r[0]+'</span><span style="color:'+CLS[r[0]]+'">'+r[1]+'</span></span>'
+   +'<span class="wish">'+(r[2].length?r[2].map(item).join(''):'<span class="none">未许愿</span>')+'</span>'
+   +'<span class="score"><span class="pm" title="扣 1 分">−</span><b>'+r[3]+'</b><span class="pm" title="加 1 分">+</span></span></div>'}).join('');
+var L=[
+ ['21:31',5,'雷霆之怒，逐风者的祝福之剑','btn'],
+ ['21:19',4,'龙牙饰物','btn'],
+ ['21:07',4,'无坚不摧之力','btn'],
+ ['21:07',4,'碧空之歌','<span style="color:var(--accent)">拍卖中</span>'],
+ ['21:05',4,'迅击戒指','<span style="color:#3FC7EB">冰霜小法</span> · 3 分'],
+ ['20:48',4,'风暴之眼','<span style="color:#0070DD">图腾大师</span> · Roll 92']
+];
+document.getElementById('lootList').innerHTML=L.map(function(r){
+  var res=r[3]==='btn'?'<span class="only-leader" style="justify-content:flex-end"><button class="btn sm">拍卖</button></span><span class="only-member" style="justify-content:flex-end">待拍</span>':r[3];
+  return '<div class="row lrow"><span style="color:var(--dim)">'+r[0]+'</span><span class="item q'+r[1]+'"><span class="ico"></span>'+r[2]+'</span><span class="res">'+res+'</span></div>'}).join('');
+
+var stage=document.getElementById('stage');
+function seg(id,attr){var s=document.getElementById(id);s.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;setv(attr,b.dataset.v)})}
+function setv(attr,v){stage.setAttribute('data-'+attr,v);
+  var id=attr==='skin'?'skinSeg':'roleSeg';[].forEach.call(document.getElementById(id).children,function(x){x.classList.toggle('on',x.dataset.v===v)});
+  if(attr==='skin')[].forEach.call(document.querySelectorAll('input[name=sk]'),function(x){x.checked=x.value===v})}
+seg('skinSeg','skin');seg('roleSeg','role');
+[].forEach.call(document.querySelectorAll('input[name=sk]'),function(x){x.addEventListener('change',function(){setv('skin',x.value)})});
+document.getElementById('tabs').addEventListener('click',function(e){var t=e.target.closest('.tab');if(!t)return;
+  [].forEach.call(this.children,function(x){x.classList.toggle('on',x===t)});
+  ['wish','loot','set'].forEach(function(k){document.getElementById('p-'+k).hidden=k!==t.dataset.t})});
+</script>
+</body>
+</html>

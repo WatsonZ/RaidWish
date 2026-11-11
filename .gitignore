@@ -1,0 +1,10 @@
+# 本地参考资料，不进仓库
+old/
+
+# 生成物与本地文件
+tools/icon/preview.png
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+dist/

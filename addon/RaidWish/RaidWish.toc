@@ -1,0 +1,43 @@
+## Interface: 16001
+## Title: |cff4aa3ffRaidWish|r 许愿助手
+## Notes: 团队许愿、分数、掉落记录与拍卖。团队频道输入 xy 加物品链接即可许愿
+## Version: 1.0.0
+## Author: 迪恩温彻斯特、秋枫
+## X-Email: dean.addon.wow@proton.me
+## X-License: MIT
+## SavedVariables: RaidWishDB, RaidWishBlacklistDB
+## SavedVariablesPerCharacter: RaidWishCharDB
+## IconTexture: Interface\AddOns\RaidWish\Images\MinimapButton
+## AddonCompartmentFunc: RaidWish_OnCompartmentClick
+
+# Interface 16001 为"无限"客户端实测值（见 docs/探测结果.md）。
+# 加载顺序：Core → Wish → Loot → Auction → Blacklist → UI（UI/Widgets.lua 在其他界面文件之前）。
+# 后续阶段的文件在创建时按此顺序加入。
+
+Core\Init.lua
+Core\Compat.lua
+Core\Util.lua
+Core\DB.lua
+Core\Items.lua
+Core\Comm.lua
+Core\Roster.lua
+Wish\WishModel.lua
+Wish\WishParser.lua
+Wish\WishSync.lua
+Wish\WishChat.lua
+Wish\WishRestore.lua
+Loot\LootLog.lua
+Loot\LootAssign.lua
+Auction\AuctionModel.lua
+Auction\Voice.lua
+Auction\AuctionComm.lua
+Blacklist\Blacklist.lua
+UI\Skin.lua
+UI\Widgets.lua
+UI\MainFrame.lua
+UI\WishTab.lua
+UI\SettingsTab.lua
+UI\LootTab.lua
+UI\AuctionPopup.lua
+UI\UnitMenu.lua
+UI\MinimapButton.lua
