@@ -5,13 +5,13 @@
 ## Author: 迪恩温彻斯特、秋枫
 ## X-Email: dean.addon.wow@proton.me
 ## X-License: MIT
-## SavedVariables: RaidWishDB, RaidWishBlacklistDB
+## SavedVariables: RaidWishDB
 ## SavedVariablesPerCharacter: RaidWishCharDB
 ## IconTexture: Interface\AddOns\RaidWish\Images\MinimapButton
 ## AddonCompartmentFunc: RaidWish_OnCompartmentClick
 
 # Interface 16001 为"无限"客户端实测值（见 docs/探测结果.md）。
-# 加载顺序：Core → Wish → Loot → Auction → Blacklist → UI（UI/Widgets.lua 在其他界面文件之前）。
+# 加载顺序：Core → Wish → Loot → Auction → UI（UI/Widgets.lua 在其他界面文件之前）。
 # 后续阶段的文件在创建时按此顺序加入。
 
 Core\Init.lua
@@ -31,7 +31,6 @@ Loot\LootAssign.lua
 Auction\AuctionModel.lua
 Auction\Voice.lua
 Auction\AuctionComm.lua
-Blacklist\Blacklist.lua
 UI\Skin.lua
 UI\Widgets.lua
 UI\MainFrame.lua

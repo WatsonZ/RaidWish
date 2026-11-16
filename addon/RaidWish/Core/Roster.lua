@@ -1,4 +1,4 @@
--- Core/Roster.lua：团队花名册（名字已规范化）。许愿、拍卖、黑名单共用。
+-- Core/Roster.lua：团队花名册（名字已规范化）。许愿、拍卖共用。
 -- GROUP_ROSTER_UPDATE 时刷新；成员有进有出时触发内部事件 RW_ROSTER_CHANGED。
 -- （ 未列出此文件；把花名册集中在一处，避免各模块各自遍历 GetRaidRosterInfo。）
 local ADDON, ns = ...

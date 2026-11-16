@@ -1,6 +1,6 @@
 -- UI/SettingsTab.lua：设置页
 -- 左侧分类，右侧内容。其他模块用 ns.Settings:AddCategory 补充自己的分类
--- （掉落记录、拍卖、黑名单等）。
+-- （掉落记录、拍卖等）。
 local ADDON, ns = ...
 
 local W = ns.Widgets
@@ -173,7 +173,7 @@ Scroller = function()
         thumb:Show()
     end
     function sf.SetContentHeight(_, h)
-        contentH = math.max(h, H)            -- 至少一屏高，让铺满到底部的列表（黑名单）照常显示
+        contentH = math.max(h, H)            -- 至少一屏高
         child:SetHeight(contentH)
         update()
     end

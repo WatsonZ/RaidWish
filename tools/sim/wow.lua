@@ -440,8 +440,7 @@ end
 
 -- 当前存档（相当于正常退出时写盘的内容）
 function Sim.Saved(c)
-    return { RaidWishDB = Sim.DeepCopy(c.env.RaidWishDB), RaidWishBlacklistDB = Sim.DeepCopy(c.env.RaidWishBlacklistDB),
-        RaidWishCharDB = Sim.DeepCopy(c.env.RaidWishCharDB) }
+    return { RaidWishDB = Sim.DeepCopy(c.env.RaidWishDB), RaidWishCharDB = Sim.DeepCopy(c.env.RaidWishCharDB) }
 end
 
 -- 游戏崩溃后用 saved（上次写盘的存档）重新登录；人还在团里

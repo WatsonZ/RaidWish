@@ -4,7 +4,7 @@ local ns = T.load({ "Core/DB.lua" })
 local DB = ns.DB
 
 -- 新存档：全部填默认值
-local main, bl, char = DB.Prepare(nil, nil, nil)
+local main, char = DB.Prepare(nil, nil)
 T.eq(main.schema, DB.SCHEMA, "新存档 schema")
 T.eq(main.options.defaultDkp, 4, "默认分 4")
 T.eq(main.options.purpleMode, true, "仅紫模式默认开")
@@ -18,8 +18,6 @@ T.eq(main.options.lootAssign.rollMax, 100, "Roll 上限")
 T.eq(main.options.lootAssign.enabled, true, "增强拾取默认开")
 T.eq(main.options.auction.voice, false, "语音默认关")
 T.eq(main.options.ui.skin, "flat", "默认扁平暗色")
-T.eq(bl.enabled, true, "黑名单默认启用")
-T.eq(bl.joinText, DB.DEFAULT_BLACKLIST_TEXT, "黑名单播报文字")
 T.eq(char.mainScale, 1, "角色级缩放")
 
 -- false 不会被默认值 true 覆盖
@@ -68,8 +66,7 @@ DB.options.startText = "自定义"
 T.eq(DB:GetStartText(), "自定义", "自定义公告")
 
 -- 改名字段的兼容
-local mOld, b2 = DB.Prepare({ options = { autoMinDkp = false } }, { announcementText = "自定义" })
+local mOld = DB.Prepare({ options = { autoMinDkp = false } })
 T.eq(mOld.options.autoDeduct, false, "旧字段 autoMinDkp 的值沿用到 autoDeduct")
 T.eq(mOld.options.autoMinDkp, nil, "旧字段删除")
-T.eq(b2.joinText, "自定义", "旧字段 announcementText 的值沿用到 joinText")
 

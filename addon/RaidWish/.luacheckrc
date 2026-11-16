@@ -12,13 +12,13 @@ ignore = { "211/ADDON" }
 
 -- 可写的全局：存档变量、斜杠命令、按键绑定显示名、TOC 声明的函数
 globals = {
-    "RaidWishDB", "RaidWishBlacklistDB", "RaidWishCharDB",
+    "RaidWishDB", "RaidWishCharDB",
     "SLASH_RAIDWISH1", "SLASH_RAIDWISH2",
     "BINDING_HEADER_RAIDWISH", "BINDING_NAME_RAIDWISH_TOGGLE",
     "RaidWish_OnCompartmentClick",
     -- 暴雪的登记表：只往里加条目，不覆盖
     "SlashCmdList", "UISpecialFrames", "StaticPopupDialogs",
-    "SLASH_RAIDWISHPM1", "SLASH_RAIDWISHPM2", "SLASH_RAIDWISHBL1",
+    "SLASH_RAIDWISHPM1", "SLASH_RAIDWISHPM2",
 }
 
 -- 只读的游戏全局（随着各阶段用到的接口逐步补充）

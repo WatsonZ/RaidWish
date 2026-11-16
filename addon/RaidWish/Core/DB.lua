@@ -18,7 +18,6 @@ DB.DEFAULT_DECLARATION = "参加本次活动即表示同意以下约定：\n"
     .. "2. 中途无故离团的，以后的活动不再邀请。\n"
     .. "3. 其他事宜由团长决定。"
 
-DB.DEFAULT_BLACKLIST_TEXT = "【黑名单提醒】{player} 加入了队伍，请留意"
 
 ------------------------------------------------------------------------
 -- 默认值
@@ -81,11 +80,6 @@ DB.defaults = {
     },
 }
 
-DB.blacklistDefaults = {
-    enabled = true,
-    players = {},
-    joinText = DB.DEFAULT_BLACKLIST_TEXT,
-}
 
 DB.charDefaults = {
     frames = {},        -- [框体键] = { point=, relPoint=, x=, y= }
@@ -143,9 +137,8 @@ function DB.Upgrade(t)
 end
 
 -- 对一组存档表做升级和填充（不读写全局，便于测试）
-function DB.Prepare(main, blacklist, char)
+function DB.Prepare(main, char)
     main = type(main) == "table" and main or {}
-    blacklist = type(blacklist) == "table" and blacklist or {}
     char = type(char) == "table" and char or {}
     if main.schema == nil then main.schema = DB.SCHEMA end
     DB.Upgrade(main)
@@ -155,14 +148,9 @@ function DB.Prepare(main, blacklist, char)
         if o.autoDeduct == nil then o.autoDeduct = o.autoMinDkp end
         o.autoMinDkp = nil
     end
-    if blacklist.announcementText ~= nil then
-        if blacklist.joinText == nil then blacklist.joinText = blacklist.announcementText end
-        blacklist.announcementText = nil
-    end
     DB.Fill(main, DB.defaults)
-    DB.Fill(blacklist, DB.blacklistDefaults)
     DB.Fill(char, DB.charDefaults)
-    return main, blacklist, char
+    return main, char
 end
 
 ------------------------------------------------------------------------
@@ -171,11 +159,9 @@ end
 
 -- ADDON_LOADED 时由 Init.lua 调用
 function DB:Init()
-    RaidWishDB, RaidWishBlacklistDB, RaidWishCharDB =
-        DB.Prepare(RaidWishDB, RaidWishBlacklistDB, RaidWishCharDB)
+    RaidWishDB, RaidWishCharDB = DB.Prepare(RaidWishDB, RaidWishCharDB)
     self.main = RaidWishDB
     self.options = RaidWishDB.options
-    self.blacklist = RaidWishBlacklistDB
     self.char = RaidWishCharDB
     self.ready = true
 end

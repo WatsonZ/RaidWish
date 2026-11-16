@@ -387,18 +387,10 @@ Sim.Check(openUnitMenu(other, "MENU_UNIT_RAID_PLAYER", "丙") == "--,<许愿助�
 Sim.Check(openUnitMenu(L, "MENU_UNIT_RAID_PLAYER", "外人") == "", "不在团里的人不加菜单项")
 Sim.ClickMenu(other, "查询许愿")
 
-section("黑名单")
-A.env.SlashCmdList.RAIDWISHBL("add 坏人 某某 拍了不给")
-Sim.Check(A.ns.Blacklist:IsListed("坏人 某某"), "/xyb add 添加")
+section("两段名字（名 姓）")
 local E = Sim.NewClient(ROOT, "坏人 某某", { class = "WARLOCK" })
 Sim.Join("坏人 某某", "WARLOCK", 0); Sim.Run(2)
-Sim.Check(Sim.ChatHas("【黑名单提醒】坏人 某某 加入了队伍，请留意（原因：拍了不给）"), "黑名单玩家进组时通报")
-local n0 = 0
-for _, l in ipairs(Sim.chatLog) do if l:find("黑名单提醒", 1, true) then n0 = n0 + 1 end end
-Sim.RosterUpdate(); Sim.Run(2)
-local n1 = 0
-for _, l in ipairs(Sim.chatLog) do if l:find("黑名单提醒", 1, true) then n1 = n1 + 1 end end
-Sim.Check(n1 == n0, "成员没变时不重复通报")
+Sim.Check(A.env.SlashCmdList.RAIDWISHBL == nil, "没有黑名单命令 /xyb")
 
 -- 两段名字（名 姓）：本人许愿、代许愿、只写名时的代许愿、识别自己
 E.say("xy " .. L1); Sim.Run(2)
@@ -411,10 +403,6 @@ Sim.Check(er.wish.items[1].name == "手打物品", "txy 名 姓 [物品] 代许�
 A.say("txy 坏人 地板"); Sim.Run(2)
 er = A.ns.Wish.model:Get("坏人 某某")
 Sim.Check(er.wish.items[1].floor, "txy 只写名（团里唯一）也能代许愿")
-A.env.SlashCmdList.RAIDWISHBL("")
-Sim.Check(A.ns.Main.current == "set" and A.ns.Settings.current == "blacklist", "/xyb 打开设置页的黑名单分类")
-A.env.SlashCmdList.RAIDWISHBL("remove 坏人 某某")
-Sim.Check(not A.ns.Blacklist:IsListed("坏人 某某"), "/xyb remove 移除")
 
 section("小地图按钮、皮肤切换")
 local mm = A.env.RaidWishMinimapButton
