@@ -84,6 +84,9 @@ end
 
 -- 提取不在链接内的 [物品名]，返回名字列表（去掉首尾空白，空名字忽略）
 function Items.ParseBracketNames(text)
+    if type(text) == "string" then
+        text = text:gsub("【", "["):gsub("】", "]"):gsub("［", "["):gsub("］", "]")
+    end
     local result = {}
     if type(text) ~= "string" then return result end
     local rest = Items.StripLinks(text)

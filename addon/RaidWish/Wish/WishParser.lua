@@ -8,12 +8,17 @@ ns.WishParser = Parser
 
 Parser.FLOOR_NAME = "地板"
 
+-- 中文输入法打出的全角括号【】［］当成 [ ] 处理（物品链接里的 [ ] 本来就是半角，不受影响）
+function Parser.NormalizeBrackets(text)
+    return (text:gsub("【", "["):gsub("】", "]"):gsub("［", "["):gsub("］", "]"))
+end
+
 -- 校验许愿内容并提取物品。
 -- 只允许物品链接和 [物品名]，可以用空白分隔；至少要有一件；夹杂其他文字则无效。
 -- 返回物品数组，无效时返回 nil。
 function Parser.ExtractItems(content)
     if type(content) ~= "string" then return nil end
-    local trimmed = ns.Util.Trim(content)
+    local trimmed = ns.Util.Trim(Parser.NormalizeBrackets(content))
     if trimmed == "" then return nil end
 
     -- "地板"许愿：xy 地板 或 xy [地板]
@@ -69,7 +74,7 @@ end
 function Parser.Parse(text, opts)
     opts = opts or {}
     if type(text) ~= "string" then return { kind = "none" } end
-    local msg = ns.Util.Trim(text)
+    local msg = ns.Util.Trim(Parser.NormalizeBrackets(text))
 
     -- txy 名 姓 物品：代许愿。名字可能有空格，物品从第一个链接、[ 或"地板"开始。
     local target, content

@@ -104,3 +104,11 @@ T.eq(r3.target .. "/" .. tostring(r3.items[1].floor), "张三 李四/true", "txy
 local r4 = P.Parse("txy 张三 " .. L1)
 T.eq(r4.target, "张三", "txy 只写名")
 T.eq(P.Parse("txy 张三 李四 乱写").kind, "invalid", "txy 内容不合法")
+
+-- 全角括号（中文输入法）
+T.eq(P.Parse("xy【墓碑节杖】").items[1].name, "墓碑节杖", "【】当成 [ ]")
+T.eq(P.Parse("xy ［墓碑节杖］").items[1].name, "墓碑节杖", "［］当成 [ ]")
+T.eq(P.Parse("xy【地板】").items[1].floor, true, "【地板】")
+T.eq(P.Parse("txy 张三 李四 【手打物品】").target, "张三 李四", "txy 名 姓 【物品】")
+T.eq(P.Parse("xy 墓碑节杖").kind, "invalid", "不带括号的名字仍然无效")
+
