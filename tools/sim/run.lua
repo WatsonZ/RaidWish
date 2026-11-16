@@ -133,7 +133,8 @@ local aboutPage
 for _, c in ipairs(A.ns.Settings.cats) do if c.key == "about" then aboutPage = c.frame end end
 Sim.Check(aboutPage and aboutPage:IsShown(), "/xy about 打开 设置 → 关于")
 Sim.Check(Sim.Find(aboutPage, function(w) return w._kind == "EditBox" and w._text == "dean.addon.wow@proton.me" end) ~= nil, "关于页显示联系邮箱")
-Sim.Click(Sim.FindButton(aboutPage, "查看"))
+Sim.Check(Sim.Find(aboutPage, function(w) return w._text and tostring(w._text):find("语音使用声明", 1, true) end) == nil, "没有真人语音时不显示语音声明")
+Sim.Click(Sim.FindButton(aboutPage, "查看出错信息"))
 Sim.Check(A.env.RaidWishTextDialog:IsShown(), "关于页可查看出错信息")
 A.ns.Main:Show("wish")
 

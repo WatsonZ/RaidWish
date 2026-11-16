@@ -49,6 +49,53 @@ local function Layout(container)
         self.y = self.y - 8
         return fs
     end
+    -- 正文段落（不缩进，按实际行数占高度）
+    function L:Para(text, role, size)
+        local fs = W.Text(container, role or "dim", size or 12)
+        fs:SetWidth(TEXT_W)
+        fs:SetJustifyH("LEFT")
+        fs:SetWordWrap(true)
+        fs:SetText(text)
+        place(fs, math.max(16, (fs:GetStringHeight() or 14) + 4))
+        self.y = self.y - 6
+        return fs
+    end
+    -- 一行"标签：内容"（标签灰色、固定宽度）
+    function L:KV(label, value)
+        local k = W.Text(container, "dim", 12)
+        k:SetText(label)
+        k:SetPoint("TOPLEFT", container, "TOPLEFT", self.x, self.y)
+        local v = W.Text(container, "text", 12)
+        v:SetText(value)
+        v:SetPoint("TOPLEFT", container, "TOPLEFT", self.x + 56, self.y)
+        v:SetWidth(TEXT_W - 56)
+        v:SetJustifyH("LEFT")
+        self.y = self.y - 22
+        return k, v
+    end
+    -- 带边框的提示框：标题一行 + 若干段正文；role 为标题颜色（例如 "warn"）
+    function L:Notice(title, paras, role)
+        local box = W.Box(container, "box")
+        box:SetPoint("TOPLEFT", container, "TOPLEFT", self.x, self.y)
+        box:SetWidth(TEXT_W)
+        local pad, y = 12, -10
+        local t = W.Text(box, role or "title", 13)
+        t:SetPoint("TOPLEFT", pad, y)
+        t:SetText(title)
+        y = y - 22
+        for _, text in ipairs(paras) do
+            local fs = W.Text(box, "text", 12)
+            fs:SetWidth(TEXT_W - pad * 2)
+            fs:SetJustifyH("LEFT")
+            fs:SetWordWrap(true)
+            fs:SetText(text)
+            fs:SetPoint("TOPLEFT", pad, y)
+            y = y - math.max(16, (fs:GetStringHeight() or 14) + 4) - 4
+        end
+        box:SetHeight(-y + 6)
+        self.y = self.y - (-y + 6) - 10
+        return box
+    end
     -- 一行操作：左边标题 + 一行说明，右边按钮。variant 为 "danger" 时按钮标红
     function L:Action(title, desc, buttonText, onClick, variant)
         local row = CreateFrame("Frame", nil, container)
@@ -378,46 +425,75 @@ end)
 
 Settings.CONTACT = "dean.addon.wow@proton.me"
 
--- 只读、可全选复制的一行文字
-local function CopyBox(container, L, text, width)
-    local e = W.Input(container, width or 260, 26)
-    e:SetPoint("TOPLEFT", container, "TOPLEFT", L.x + 24, L.y)
-    e:SetText(text)
-    e:HookScript("OnEditFocusGained", function(self) self:HighlightText() end)
-    e:HookScript("OnMouseUp", function(self) self:SetFocus() self:HighlightText() end)
-    e:HookScript("OnTextChanged", function(self, user) if user then self:SetText(text) self:HighlightText() end end)
-    L.y = L.y - 32
-    return e
+local function ShowErrors()
+    local list = ns.DB.main.errors
+    local text
+    if type(list) ~= "table" or #list == 0 then
+        text = "没有出错记录。"
+    else
+        text = "RaidWish " .. ns.VERSION .. "\n\n" .. table.concat(list, "\n\n")
+    end
+    W.TextDialog("出错信息", text, nil, nil, "点\"复制\"后按 Ctrl+C，粘贴到邮件里发给作者")
 end
 
 Settings:AddCategory("about", "关于", 90, function(container, L)
-    L:Heading("许愿助手 RaidWish")
     local pack = ns.Voice and ns.Voice:Pack()
-    local voiceBy = (pack and pack.author and pack.author ~= "") and ("　·　配音 " .. pack.author) or ""
-    L:Hint("版本 " .. ns.VERSION .. "　·　作者 迪恩温彻斯特、秋枫" .. voiceBy)
-    L:Hint("团队许愿、分数、掉落记录与拍卖。团队频道输入 xy 加物品链接即可许愿。")
-    L:Space(8)
+    local voiceBy = pack and pack.author and pack.author ~= "" and pack.author or nil
+
+    -- 顶部：图标 + 名称 + 版本 + 一句话简介
+    local head = W.Box(container, "band")
+    head:SetPoint("TOPLEFT", container, "TOPLEFT", L.x, L.y)
+    head:SetSize(600 - 150 - 1 - 18 - 30, 64)
+    local icon = head:CreateTexture(nil, "ARTWORK")
+    icon:SetSize(40, 40)
+    icon:SetPoint("LEFT", 12, 0)
+    icon:SetTexture(W.Textures.minimapIcon)
+    local name = W.Text(head, "title", 15)
+    name:SetPoint("TOPLEFT", icon, "TOPRIGHT", 12, -2)
+    name:SetText("许愿助手 RaidWish")
+    local ver = W.Text(head, "accent", 12)
+    ver:SetPoint("LEFT", name, "RIGHT", 10, 0)
+    ver:SetText("v" .. ns.VERSION)
+    local desc = W.Text(head, "dim", 12)
+    desc:SetPoint("BOTTOMLEFT", icon, "BOTTOMRIGHT", 12, 2)
+    desc:SetText("团队许愿、分数、掉落记录与拍卖")
+    L.y = L.y - 64 - 14
+
+    -- 署名
+    L:KV("作者", "迪恩温彻斯特、秋枫")
+    if voiceBy then L:KV("配音", voiceBy .. "（" .. (pack.name or "语音包") .. "）") end
+    L:KV("许可", voiceBy and "代码 MIT 开源；真人语音另行授权，见下方声明" or "MIT 开源")
+    L:Space(6)
+
+    -- 语音包声明（带真人语音时才有）
+    if voiceBy then
+        L:Notice("语音使用声明", {
+            "本插件中的真人语音由「" .. voiceBy .. "」配音，版权及声音权益归配音者所有，不适用 MIT 许可证。",
+            "语音仅限在本插件中使用。禁止提取、复制录音另作他用；禁止修改、剪辑，或从插件中拆出单独传播；"
+                .. "禁止用于 AI 训练、声音克隆、语音合成；禁止冒充配音者或用于商业用途。",
+            "完整条款见插件文件夹里的 voicepack\\VOICE_LICENSE.txt。",
+        }, "warn")
+    end
 
     L:Heading("开源声明")
-    L:Hint("本插件以 MIT 许可证开源，免费使用。你可以自由使用、复制、修改和分发，"
-        .. "但须保留原作者署名和许可声明。")
-    L:Hint("本插件按\"原样\"提供，不附带任何形式的担保；因使用本插件造成的任何损失，作者不承担责任。")
-    L:Hint("本插件为玩家个人作品，与暴雪娱乐、网易公司无关。")
-    L:Space(8)
+    L:Para("插件代码以 MIT 许可证开源，可以免费使用、复制、修改和分发，但须保留原作者署名和许可声明。")
+    L:Para("本插件按\"原样\"提供，不附带任何担保；因使用本插件造成的损失，作者不承担责任。")
+    L:Para("本插件为玩家个人作品，与暴雪娱乐、网易公司无关。")
 
     L:Heading("联系作者")
-    L:Hint("发现问题或有建议，请发邮件给作者。最好附上截图、操作步骤，以及下面的\"出错信息\"。")
-    CopyBox(container, L, Settings.CONTACT)
-    L:Hint("点一下邮箱即可全选，按 Ctrl+C 复制。")
-    L:Action("出错信息", "插件最近记录的出错信息，反馈问题时一起发给作者", "查看", function()
-        local list = ns.DB.main.errors
-        local text
-        if type(list) ~= "table" or #list == 0 then
-            text = "没有出错记录。"
-        else
-            text = "RaidWish " .. ns.VERSION .. "\n\n" .. table.concat(list, "\n\n")
-        end
-        W.TextDialog("出错信息", text, nil, nil, "点\"复制\"后按 Ctrl+C，粘贴到邮件里发给作者")
+    L:Para("发现问题或有建议，请发邮件给作者，最好附上截图、操作步骤和出错信息。")
+    local e = W.Input(container, 250, 26)
+    e:SetPoint("TOPLEFT", container, "TOPLEFT", L.x, L.y)
+    e:SetText(Settings.CONTACT)
+    e:HookScript("OnEditFocusGained", function(self) self:HighlightText() end)
+    e:HookScript("OnMouseUp", function(self) self:SetFocus() self:HighlightText() end)
+    e:HookScript("OnTextChanged", function(self, user)
+        if user then self:SetText(Settings.CONTACT) self:HighlightText() end
     end)
+    local errBtn = W.Button(container, "查看出错信息", "normal", "auto", 26, ShowErrors)
+    errBtn:SetPoint("LEFT", e, "RIGHT", 10, 0)
+    W.Tooltip(errBtn, "出错信息", "插件最近记录的出错信息，反馈问题时复制下来一起发给作者")
+    L.y = L.y - 32
+    L:Para("点一下邮箱即可全选，按 Ctrl+C 复制。")
 end)
 

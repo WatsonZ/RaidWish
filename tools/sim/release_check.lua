@@ -38,6 +38,14 @@ if exists("voicepack/VoicePack.lua") then
             Sim.Check(exists("voice/" .. k .. ".ogg"), "默认语音 " .. k .. " 还在（语音包缺句时兜底）")
         end
         print("  真人语音 " .. n .. " / " .. total .. " 句")
+        A.slash("about")
+        local about
+        for _, c in ipairs(A.ns.Settings.cats) do if c.key == "about" then about = c.frame end end
+        local function hasText(t)
+            return Sim.Find(about, function(w) return w._text and tostring(w._text):find(t, 1, true) end) ~= nil
+        end
+        Sim.Check(hasText("语音使用声明") and hasText("禁止用于 AI 训练"), "关于页有语音使用声明")
+        Sim.Check(hasText(pack.author), "关于页有配音署名")
         A.sounds = {}
         Sim.Run(2); V:Play("won_bid")
         local want = exists("voicepack/won_bid.ogg") and "voicepack" or "\\voice\\"
