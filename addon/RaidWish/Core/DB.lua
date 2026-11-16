@@ -68,7 +68,7 @@ DB.defaults = {
         ui = {
             skin = "flat",
             showMinimap = true,
-            icon = "coin",          -- 小地图按钮图标（见 UI/Widgets.lua 的 W.ICONS）
+            icon = "starcoin",      -- 小地图按钮图标（见 UI/Widgets.lua 的 W.ICONS）
         },
     },
     wishes = {},        -- [规范化名字] = { class=, dkp=, wish=, ts= }

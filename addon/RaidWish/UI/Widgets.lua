@@ -13,8 +13,12 @@ local CIRCLE_MASK = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
 
 W.Debounce = ns.Debounce
 
--- 小地图按钮 / 关于页可选的图标：游戏自带的物品图标（和其他插件按钮风格一致），以及插件自带的"许愿星"
+-- 小地图按钮 / 关于页可选的图标：插件设计的三个、游戏自带的物品图标（和其他插件按钮风格一致），以及最早的"许愿星"
+local IMG = "Interface\\AddOns\\" .. ADDON .. "\\Images\\"
 W.ICONS = {
+    { key = "starcoin", label = "星纹金币（插件设计）", path = IMG .. "Icon_StarCoin" },
+    { key = "wishorb",  label = "许愿宝珠（插件设计）", path = IMG .. "Icon_WishOrb" },
+    { key = "meteor",   label = "流星许愿（插件设计）", path = IMG .. "Icon_Meteor" },
     { key = "coin",    label = "金币",     path = "Interface\\Icons\\INV_Misc_Coin_17" },
     { key = "coins",   label = "一摞金币", path = "Interface\\Icons\\INV_Misc_Coin_02" },
     { key = "gift",    label = "金色礼盒", path = "Interface\\Icons\\INV_Misc_Gift_05" },
@@ -25,7 +29,7 @@ W.ICONS = {
     { key = "coinbag", label = "钱袋",     path = "Interface\\Icons\\INV_Misc_CoinBag_Special" },
     { key = "star",    label = "许愿星（插件自带）", custom = true },
 }
-W.DEFAULT_ICON = "coin"
+W.DEFAULT_ICON = "starcoin"
 
 function W.IconInfo(key)
     key = key or (ns.DB and ns.DB.options and ns.DB.options.ui.icon) or W.DEFAULT_ICON
