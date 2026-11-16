@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: |cff4aa3ffRaidWish|r 许愿助手
 ## Notes: 团队许愿、分数、掉落记录与拍卖。团队频道输入 xy 加物品链接即可许愿
-## Version: 1.0.0
+## Version: 1.0.1
 ## Author: 迪恩温彻斯特、秋枫
 ## X-Email: dean.addon.wow@proton.me
 ## X-License: MIT

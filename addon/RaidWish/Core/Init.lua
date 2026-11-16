@@ -2,7 +2,7 @@
 local ADDON, ns = ...
 
 ns.ADDON = ADDON
-ns.VERSION = "1.0.0"          -- 与 TOC 的 Version 保持一致
+ns.VERSION = "1.0.1"          -- 与 TOC 的 Version 保持一致
 ns.TITLE = "RaidWish 许愿助手"
 ns.SHORT_TITLE = "许愿助手"
 ns.PROTOCOL = 2               -- 通讯协议版本
