@@ -152,12 +152,4 @@ function Compat.GetLootMethod()
     return method
 end
 
--- 能力摘要，供 /xy debug compat
-function Compat.Describe()
-    local parts = {}
-    for k, v in pairs(Compat.has) do parts[#parts + 1] = k .. "=" .. tostring(v) end
-    table.sort(parts)
-    return table.concat(parts, " ")
-end
 
-ns.Slash:RegisterDebug("compat", function() ns.Print(Compat.Describe()) end, nil)

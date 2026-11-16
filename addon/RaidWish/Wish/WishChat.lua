@@ -599,26 +599,3 @@ ns.Events:On("GROUP_LEFT", function()
             { danger = true, okText = "清空" })
     end
 end)
-
-------------------------------------------------------------------------
--- 调试命令（/xy debug，测试许愿流程用）
-------------------------------------------------------------------------
-
-ns.Slash:RegisterDebug("start", function() WC:Start() end, "开始许愿")
-ns.Slash:RegisterDebug("stop", function() WC:Stop() end, "停止许愿")
-ns.Slash:RegisterDebug("quit", function() WC:Relinquish() end, "放弃许愿团长权限")
-
-ns.Slash:RegisterDebug("dump", function()
-    local l = ns.DB.main.leader
-    local state, n, total = ns.Wish:SyncState()
-    ns.Print(("许愿团长：%s，任期 %s，%s；自己%s团长；同步：%s%s"):format(
-        tostring(l.name or "无"), tostring(l.term), ns.Wish:InProgress() and "进行中" or "未进行",
-        ns.Wish:IsLeader() and "是" or "不是", state, n and (" " .. n .. "/" .. total) or ""))
-    local rows = M():Sorted("name", true)
-    for _, row in ipairs(rows) do
-        local here = ns.Roster:Has(row.name) and "" or "（离队）"
-        ns.Print(("  %s%s [%s] %s分 %s"):format(row.name, here, tostring(row.rec.class or "?"),
-            tostring(row.rec.dkp), ns.WishModel.HasWish(row.rec) and WC.WishText(row.rec) or "未许愿"))
-    end
-    ns.Print("共 " .. #rows .. " 条")
-end, "打印许愿表")

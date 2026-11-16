@@ -2,7 +2,7 @@
 local ADDON, ns = ...
 
 ns.ADDON = ADDON
-ns.VERSION = "1.0.1"          -- 与 TOC 的 Version 保持一致
+ns.VERSION = "1.0.2"          -- 与 TOC 的 Version 保持一致
 ns.TITLE = "RaidWish 许愿助手"
 ns.SHORT_TITLE = "许愿助手"
 ns.PROTOCOL = 2               -- 通讯协议版本
@@ -197,10 +197,9 @@ end
 ------------------------------------------------------------------------
 -- 斜杠命令
 -- /xy、/xyt：不带参数开关主窗口；子命令见 /xy help。
--- 调试命令统一放在 /xy debug 下。
 ------------------------------------------------------------------------
 
-local Slash = { commands = {}, order = {}, debug = {}, debugOrder = {} }
+local Slash = { commands = {}, order = {} }
 ns.Slash = Slash
 
 -- 注册 /xy 的子命令。handler(rest) 收到子命令之后的参数文本。
@@ -208,13 +207,6 @@ function Slash:Register(name, handler, help)
     name = name:lower()
     if not self.commands[name] then self.order[#self.order + 1] = name end
     self.commands[name] = { fn = handler, help = help }
-end
-
--- 注册 /xy debug 下的子命令
-function Slash:RegisterDebug(name, handler, help)
-    name = name:lower()
-    if not self.debug[name] then self.debugOrder[#self.debugOrder + 1] = name end
-    self.debug[name] = { fn = handler, help = help }
 end
 
 function ns.PrintVersion()
@@ -248,28 +240,6 @@ local function OnSlash(msg)
     end
     if cmd ~= "help" then ns.Print("未知命令：" .. cmd) end
     Help()
-end
-
-Slash:Register("debug", function(rest)
-    local sub, args = SplitCmd(rest)
-    local c = Slash.debug[sub]
-    if c then
-        c.fn(args)
-        return
-    end
-    ns.Print("调试命令：")
-    for _, name in ipairs(Slash.debugOrder) do
-        ns.Print("  /xy debug " .. name .. (Slash.debug[name].help and ("  " .. Slash.debug[name].help) or ""))
-    end
-end, "调试命令")
-
--- 调试输出级别（/xy debug0 ~ debug3）
-local LEVEL_NAME = { [0] = "仅错误", [1] = "警告和错误", [2] = "一般信息", [3] = "详细调试" }
-for lv = 0, 3 do
-    Slash:Register("debug" .. lv, function()
-        ns.logLevel = lv
-        ns.Print("调试级别设置为：" .. LEVEL_NAME[lv])
-    end, lv == 0 and "调试输出级别（debug0 ~ debug3）" or nil)
 end
 
 SLASH_RAIDWISH1 = "/xy"

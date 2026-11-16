@@ -31,7 +31,7 @@ local function leaderOf(c) return c.ns.DB.main.leader.name end
 ------------------------------------------------------------------------
 
 section("开始许愿、录入、同步")
-A.slash("debug start"); Sim.Run(3)
+A.ns.WishChat:Start(); Sim.Run(3)
 Sim.Check(leaderOf(A) == "甲" and leaderOf(B) == "甲" and leaderOf(C) == "甲", "三端都认定 甲 为许愿团长")
 Sim.Check(B.ns.Wish:InProgress(), "团员端显示许愿进行中")
 B.say("xy " .. L1); Sim.Run(3)
@@ -641,6 +641,11 @@ for _, k in ipairs({ "bid_6", "bid_7", "bid_8" }) do Sim.Run(2); V:Play(k) end
 Sim.Check(#lead.sounds == 3, "6、7、8 分有默认语音")
 lead.env.RaidWishVoicePack = nil
 Sim.packFiles = nil
+
+section("正式版不带调试命令")
+for _, cmd in ipairs({ "debug", "debug0", "debug3" }) do
+    Sim.Check(A.ns.Slash.commands[cmd] == nil, "没有 /xy " .. cmd)
+end
 
 ------------------------------------------------------------------------
 -- 报告

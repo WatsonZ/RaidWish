@@ -331,16 +331,8 @@ ns.Events:On("GROUP_LEFT", function()
 end)
 
 ------------------------------------------------------------------------
--- 调试命令（/xy debug，测试通讯用）
+-- 版本提示
 ------------------------------------------------------------------------
-
-local floodRecv = {}       -- [sender] = { count=, last=, outOfOrder=, total=, timer= }
-
-local function Checksum(s)
-    local sum = 0
-    for i = 1, #s do sum = (sum * 31 + s:byte(i)) % 1000000007 end
-    return sum
-end
 
 -- 版本号转成可比较的数字："1.2.3" → 10203
 function Comm.VersionNumber(v)
@@ -350,13 +342,8 @@ function Comm.VersionNumber(v)
 end
 
 -- 团员上线、进团时会互发 HELLO。平时不提示；对方版本和自己不一样时提示一次，方便提醒更新。
--- /xy debug ping 发的 HELLO 带 "ping"，收到时总是显示（测试通讯用）
 local versionNoted = {}
-Comm:On("HELLO", function(sender, version, ping)
-    if ping == "ping" then
-        ns.Print("收到 HELLO 来自 " .. sender .. "，版本 " .. tostring(version))
-        return
-    end
+Comm:On("HELLO", function(sender, version)
     local mine, theirs = Comm.VersionNumber(ns.VERSION), Comm.VersionNumber(version)
     if not mine or not theirs or theirs == mine or versionNoted[sender] == version then return end
     versionNoted[sender] = version
@@ -366,71 +353,3 @@ Comm:On("HELLO", function(sender, version, ping)
         ns.Print(sender .. " 用的许愿助手是新版本 " .. tostring(version) .. "（你的是 " .. ns.VERSION .. "），建议你也更新")
     end
 end)
-
-Comm:On("DBGF", function(sender, idx, total)
-    idx, total = tonumber(idx), tonumber(total)
-    if not idx then return end
-    local r = floodRecv[sender]
-    if not r or idx == 1 then
-        r = { count = 0, last = 0, outOfOrder = 0 }
-        floodRecv[sender] = r
-    end
-    r.count = r.count + 1
-    r.total = total
-    if idx <= r.last then r.outOfOrder = r.outOfOrder + 1 end
-    r.last = idx
-    -- 3 秒内没有新消息就打印汇总
-    if r.timer then r.timer:Cancel() end
-    r.timer = ns.After(3, function()
-        ns.Print(("收到 %s 的 flood：%d / %d 条，乱序 %d 条，%s"):format(sender, r.count, r.total or 0,
-            r.outOfOrder, (r.count == r.total and r.outOfOrder == 0) and "|cff55ff55全部到达且顺序正确|r" or "|cffff5555有缺失或乱序|r"))
-        floodRecv[sender] = nil
-    end)
-end)
-
-Comm:On("DBGBIG", function(sender, len, sum, payload)
-    payload = payload or ""
-    local okLen = tonumber(len) == #payload
-    local okSum = tonumber(sum) == Checksum(payload)
-    ns.Print(("收到 %s 的长消息：%d 字节，%s"):format(sender, #payload,
-        (okLen and okSum) and "|cff55ff55分片重组正确|r" or "|cffff5555内容不一致|r"))
-end)
-
-local function RequireRaid()
-    if IsInRaid() then return true end
-    ns.Print("需要在团队中（两个人也可以把队伍转成团队）")
-    return false
-end
-
-ns.Slash:RegisterDebug("ping", function()
-    if not RequireRaid() then return end
-    Comm:Send("HELLO", ns.VERSION, "ping")
-    ns.Print("已发出 HELLO")
-end, "向团队广播 HELLO")
-
-ns.Slash:RegisterDebug("flood", function(rest)
-    if not RequireRaid() then return end
-    local n = math.max(1, math.min(tonumber(rest) or 60, 300))
-    for i = 1, n do Comm:Send("DBGF", i, n) end
-    ns.Print(("已排队 %d 条，按每 %.1f 秒 1 条发出，约 %.0f 秒发完"):format(n, Comm.interval, n * Comm.interval))
-end, "连发 N 条插件消息")
-
-ns.Slash:RegisterDebug("big", function()
-    if not RequireRaid() then return end
-    local chunk = "许愿助手分片测试ABC123"
-    local parts = {}
-    local total = 0
-    while total < 600 do
-        parts[#parts + 1] = chunk
-        total = total + #chunk
-    end
-    local payload = table.concat(parts)
-    Comm:Send("DBGBIG", #payload, Checksum(payload), payload)
-    ns.Print(("已发出 %d 字节的长消息，分成 %d 片"):format(#payload, #Comm.Pack(Comm.Encode("DBGBIG", #payload, Checksum(payload), payload), 1)))
-end, "发一条约 600 字节的长消息")
-
-ns.Slash:RegisterDebug("comm", function()
-    local s = Comm.stats
-    ns.Print(("通讯：排队 %d，已发 %d，限流 %d，失败 %d，丢弃 %d，收到 %d（分片 %d），队列中 %d，间隔 %.2f 秒"):format(
-        s.queued, s.sent, s.throttled, s.failed, s.dropped, s.received, s.parts, #queue, Comm.interval))
-end, "通讯统计")
