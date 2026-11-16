@@ -54,7 +54,7 @@ T.eq(sends(acts), "ARESET(乙:3)", "出分后广播出分表并重新计时")
 T.eq(m.phaseStart, 2, "出分重置计时")
 T.eq(#run(m, 2, 8.9), 0, "出分后 7 秒内没有动作")
 local all = run(m, 9, 13)
-T.eq(chats(all), "RAID:三 | RAID:二 | RAID:一 | RAID_WARNING:出分截止！ | RAID_WARNING:乙 以三分拍得 " .. LINK .. "，拾取时自动扣分",
+T.eq(chats(all), "RAID:3… | RAID:2… | RAID:1… | RAID_WARNING:出分截止！ | RAID_WARNING:乙 以三分拍得 " .. LINK .. "，拾取时自动扣分",
     "倒数与结算文案")
 T.ok(has(all, "voice", "name", "countdown"), "倒数语音")
 local r = has(all, "result", "winner", "乙")
@@ -96,11 +96,10 @@ _, rec = m:Roll("乙", 30, 1, 50, 11.5)
 T.ok(not rec, "范围不是 1-100 不算")
 _, rec = m:Roll("乙", 80, 1, 100, 12)
 T.ok(rec, "名单内的 Roll 记录")
-T.eq(m.deadline, 22, "新的 Roll 重新计时 10 秒")
+T.eq(m.deadline, 12, "同分的人都掷完了：提前结束，不再等满 10 秒")
 _, rec = m:Roll("乙", 100, 1, 100, 13)
 T.ok(not rec, "每人只认第一次 Roll")
-all = run(m, 13, 23)
-T.ok(chats(all):find("RAID:三 | RAID:二 | RAID:一", 1, true), "Roll 最后 3 秒倒数")
+all = run(m, 12, 23)
 T.ok(chats(all):find("乙 以 Roll 点 80 拿到 " .. LINK .. "，出价三分，拾取时自动扣分", 1, true), "Roll 结算文案")
 r = has(all, "result", "winner", "乙")
 T.ok(r and r.roll == 80 and r.score == 3, "结算结果含 Roll 点与出分")
@@ -111,10 +110,10 @@ m:Start(1, LINK, "甲", 0)
 m:Bid("乙", 2, 0.5, nil); m:Bid("丙", 2, 0.6, nil)
 run(m, 1, 11)
 m:Roll("乙", 66, 1, 100, 11); m:Roll("丙", 66, 1, 100, 11)
-all = run(m, 11, 21.5)
+all = run(m, 11, 15)
 T.ok(chats(all):find("Roll 点相同，请 乙、丙 再 /roll 一次", 1, true), "同点进入下一轮")
 T.eq(m.state, "roll", "仍在 Roll 阶段")
-all = run(m, 21.5, 32)
+all = run(m, 15, 26)
 T.ok(chats(all):find(LINK .. " 没人 Roll，流拍", 1, true), "下一轮没人 Roll：流拍")
 
 ------------------------------------------------------------------------
@@ -138,12 +137,12 @@ T.eq(sends(acts), "ARESET()", "放弃后广播空出分表")
 T.eq(m:BidCount(), 0, "出分记录移除")
 acts = m:Early(3)
 T.eq(m.state, "count", "数秒：直接进入倒数")
-T.eq(chats(acts), "RAID:三", "数秒立即发\"三\"")
+T.eq(chats(acts), "RAID:3…", "数秒立即发\"3…\"")
 T.eq(sends(acts), "AEARLY", "数秒消息")
 all = run(m, 3, 6.2)
 local cs = chats(all)
 T.ok(cs:find("出分截止！", 1, true), "数秒后出分结束")
-T.ok(cs:find("RAID:一", 1, true) < cs:find("出分截止！", 1, true), "\"一\"一定在\"出分截止！\"之前（隔开 1 秒发）")
+T.ok(cs:find("RAID:1…", 1, true) < cs:find("出分截止！", 1, true), "\"一\"一定在\"出分截止！\"之前（隔开 1 秒发）")
 
 m = AM.New()
 m:Start(1, LINK, "甲", 0)
@@ -205,7 +204,7 @@ do
     local a2 = m2:Bid("丙", 2, 8.3)
     T.eq(m2.state, "count", "出 2 分（比 5 分低）不打断倒数")
     T.eq(m2.bids["丙"], 2, "低分照样记下")
-    T.ok(not chats(a2):find("三", 1, true), "低分不会重新喊三")
+    T.ok(not chats(a2):find("3…", 1, true), "低分不会重新喊 3")
     m2:Bid("丁", 5, 8.5)
     T.eq(m2.state, "bid", "追平最高分：重新计时（之后进 Roll）")
     run(m2, 8.5, 16.2)
@@ -214,5 +213,31 @@ do
     T.eq(m2.state, "count", "非最高分的人放弃不打断倒数")
     m2:Pass("丁", 16.4)
     T.eq(m2.state, "bid", "最高分之一放弃：重新计时")
+end
+
+-- Roll 不重新计时：有人在倒数时 Roll，不会再倒数一遍
+do
+    local m3 = AM.New()
+    m3:Start(1, LINK, "甲", 0)
+    m3:Bid("乙", 2, 0.5, nil); m3:Bid("丙", 2, 0.6, nil)
+    run(m3, 1, 11)
+    T.eq(m3.state, "roll", "（前提）进入 Roll")
+    local deadline = m3.deadline
+    local a1 = run(m3, 11, deadline - 2.5)
+    m3:Roll("乙", 40, 1, 100, deadline - 2.4)         -- 倒数开始后才 Roll
+    T.eq(m3.deadline, deadline, "Roll 不重新计时")
+    local a2 = run(m3, deadline - 2.4, deadline + 1)
+    local cs3 = chats(a1) .. " | " .. chats(a2)
+    local n3 = select(2, cs3:gsub("3…", ""))
+    T.eq(n3, 1, "只倒数一次")
+    T.ok(chats(a2):find("乙 以 Roll 点 40 拿到", 1, true), "时间到了按已有的 Roll 结算")
+end
+
+-- 全团 Roll：谁 Roll 都不重新计时，时间到才结算
+do
+    local m4 = AM.New()
+    m4:DirectRoll(1, LINK, "甲", 0)
+    m4:Roll("乙", 10, 1, 100, 5); m4:Roll("丙", 20, 1, 100, 9)
+    T.eq(m4.deadline, AM.ROLL_TIME, "全团 Roll 不提前结束、不重新计时")
 end
 

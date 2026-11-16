@@ -342,8 +342,29 @@ local function Checksum(s)
     return sum
 end
 
-Comm:On("HELLO", function(sender, version)
-    ns.Print("收到 HELLO 来自 " .. sender .. "，版本 " .. tostring(version))
+-- 版本号转成可比较的数字："1.2.3" → 10203
+function Comm.VersionNumber(v)
+    local a, b, c = tostring(v or ""):match("^(%d+)%.(%d+)%.?(%d*)")
+    if not a then return nil end
+    return tonumber(a) * 10000 + tonumber(b) * 100 + (tonumber(c) or 0)
+end
+
+-- 团员上线、进团时会互发 HELLO。平时不提示；对方版本和自己不一样时提示一次，方便提醒更新。
+-- /xy debug ping 发的 HELLO 带 "ping"，收到时总是显示（测试通讯用）
+local versionNoted = {}
+Comm:On("HELLO", function(sender, version, ping)
+    if ping == "ping" then
+        ns.Print("收到 HELLO 来自 " .. sender .. "，版本 " .. tostring(version))
+        return
+    end
+    local mine, theirs = Comm.VersionNumber(ns.VERSION), Comm.VersionNumber(version)
+    if not mine or not theirs or theirs == mine or versionNoted[sender] == version then return end
+    versionNoted[sender] = version
+    if theirs < mine then
+        ns.Print(sender .. " 用的许愿助手是旧版本 " .. tostring(version) .. "（你的是 " .. ns.VERSION .. "），请提醒他更新")
+    else
+        ns.Print(sender .. " 用的许愿助手是新版本 " .. tostring(version) .. "（你的是 " .. ns.VERSION .. "），建议你也更新")
+    end
 end)
 
 Comm:On("DBGF", function(sender, idx, total)
@@ -383,7 +404,7 @@ end
 
 ns.Slash:RegisterDebug("ping", function()
     if not RequireRaid() then return end
-    Comm:Send("HELLO", ns.VERSION)
+    Comm:Send("HELLO", ns.VERSION, "ping")
     ns.Print("已发出 HELLO")
 end, "向团队广播 HELLO")
 

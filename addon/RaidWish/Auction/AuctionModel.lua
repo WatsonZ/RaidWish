@@ -19,11 +19,13 @@ ns.AuctionModel = AM
 AM.BID_TIME = 10        -- 出分阶段总时长（有人出分后重新计时）
 AM.COUNT_AT = 7         -- 出分阶段第 7 秒开始倒数
 AM.WAIT_TIME = 1        -- 出分结束后等 1 秒再结算（wait 状态）
-AM.ROLL_TIME = 10       -- Roll 阶段时长（有人 Roll 后重新计时）
+AM.ROLL_TIME = 10       -- Roll 阶段时长（固定，不因有人 Roll 而重新计时；同分 Roll 全部掷完就提前结束）
 AM.SETTLE_TIME = 3      -- 结算展示时长
 AM.MAX_RESULTS = 20
 
-local CN = { [3] = "三", [2] = "二", [1] = "一" }
+-- 倒数用阿拉伯数字。后面带"…"：只发一个数字的话，会被当成在团队频道出分
+AM.COUNT_TEXT = { [3] = "3…", [2] = "2…", [1] = "1…" }
+local CN = AM.COUNT_TEXT
 
 -- 数字转中文（0~99）
 function AM.ChineseNumeral(num)
@@ -86,6 +88,13 @@ function AM:HighestRoll()
         if r > max then max, who = r, { name } elseif r == max then who[#who + 1] = name end
     end
     return max, who
+end
+
+-- 同分 Roll 名单里的人是否都掷过了（全团 Roll 不提前结束）
+function AM:AllRolled()
+    if self.state ~= "roll" or self.rollers == "all" or not self.rollers then return false end
+    for n in pairs(self.rollers) do if self.rolls[n] == nil then return false end end
+    return true
 end
 
 function AM:InRoll(name)
@@ -168,6 +177,7 @@ local function EnterRoll(self, names, now)
             self.rollOrder[#self.rollOrder + 1] = p.name
         end
     end
+    if self:AllRolled() then self.deadline = now end     -- 提前 Roll 过的已经齐了
     self.preRolls = {}
 end
 
@@ -268,13 +278,13 @@ function AM:Early(now)
         self.phaseStart = now
         self.countLeft = 2
         self.lastShout = now
-        Chat(acts, "三", "RAID")
+        Chat(acts, CN[3], "RAID")
         Voice(acts, "countdown")
         Send(acts, "AEARLY")
     elseif self.state == "roll" then
         self.deadline = now + 3
         self.lastShout = now
-        Chat(acts, "三", "RAID")
+        Chat(acts, CN[3], "RAID")
         Voice(acts, "countdown")
         Send(acts, "AEARLY")
     end
@@ -308,8 +318,8 @@ function AM:Roll(name, value, lo, hi, now)
     if self.state ~= "roll" or not self:InRoll(name) or self.rolls[name] ~= nil then return acts, false end
     self.rolls[name] = value
     self.rollOrder[#self.rollOrder + 1] = name
-    self.deadline = now + AM.ROLL_TIME          -- 新的 Roll 重新计时
-    self.lastShout = now
+    -- 不重新计时（否则有人在倒数时 Roll 又会重新倒数一遍）；同分 Roll 的人都掷完了就提前结束
+    if self:AllRolled() then self.deadline = now end
     return acts, true
 end
 
@@ -377,7 +387,7 @@ function AM:Tick(now)
             self.countLeft = 2
             self.lastShout = now
             Voice(acts, "countdown")
-            Chat(acts, "三", "RAID")
+            Chat(acts, CN[3], "RAID")
         end
     elseif s == "count" then
         if self.countLeft > 0 then

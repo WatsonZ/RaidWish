@@ -151,7 +151,7 @@ local function OnResult(r)
     ns.Events:Fire("RW_AUCTION_RESULT", r)
 end
 
-local CHAT_TTL = { ["三"] = 2, ["二"] = 2, ["一"] = 2 }
+local CHAT_TTL = { [AM.COUNT_TEXT[3]] = 2, [AM.COUNT_TEXT[2]] = 2, [AM.COUNT_TEXT[1]] = 2 }
 
 local function Execute(acts)
     for _, a in ipairs(acts) do

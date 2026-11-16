@@ -288,3 +288,10 @@ clock = clock + 6
 onAddon("RaidWish", "2\tTEST\t3\t4", "RAID", "甲")   -- 任何新消息都会触发清理
 for i = 2, #parts do onAddon("RaidWish", parts[i], "RAID", "乙") end
 T.eq(bigGot, nil, "超时后旧分片被丢弃，后来的分片凑不齐")
+
+-- 版本号比较
+T.eq(C.VersionNumber("1.0.1"), 10001, "版本号转数字")
+T.ok(C.VersionNumber("1.0.0") < C.VersionNumber("1.0.1"), "1.0.0 比 1.0.1 旧")
+T.ok(C.VersionNumber("1.10.0") > C.VersionNumber("1.9.9"), "按数字比较，不按字符串")
+T.eq(C.VersionNumber("abc"), nil, "无法识别的版本号")
+
