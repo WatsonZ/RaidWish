@@ -7,7 +7,7 @@
 ## X-License: MIT
 ## SavedVariables: RaidWishDB
 ## SavedVariablesPerCharacter: RaidWishCharDB
-## IconTexture: Interface\AddOns\RaidWish\Images\Icon_StarCoin
+## IconTexture: Interface\AddOns\RaidWish\Images\MinimapButton
 ## AddonCompartmentFunc: RaidWish_OnCompartmentClick
 
 # Interface 16001 为"无限"客户端实测值（见 docs/探测结果.md）。

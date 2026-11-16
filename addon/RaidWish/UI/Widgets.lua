@@ -16,6 +16,7 @@ W.Debounce = ns.Debounce
 -- 小地图按钮 / 关于页可选的图标：插件设计的三个、游戏自带的物品图标（和其他插件按钮风格一致），以及最早的"许愿星"
 local IMG = "Interface\\AddOns\\" .. ADDON .. "\\Images\\"
 W.ICONS = {
+    { key = "star",     label = "许愿星（默认）", custom = true },
     { key = "starcoin", label = "星纹金币（插件设计）", path = IMG .. "Icon_StarCoin" },
     { key = "wishorb",  label = "许愿宝珠（插件设计）", path = IMG .. "Icon_WishOrb" },
     { key = "meteor",   label = "流星许愿（插件设计）", path = IMG .. "Icon_Meteor" },
@@ -27,9 +28,8 @@ W.ICONS = {
     { key = "pearl",   label = "许愿宝珠", path = "Interface\\Icons\\INV_Misc_Gem_Pearl_04" },
     { key = "dice",    label = "骰子",     path = "Interface\\Icons\\INV_Misc_Dice_01" },
     { key = "coinbag", label = "钱袋",     path = "Interface\\Icons\\INV_Misc_CoinBag_Special" },
-    { key = "star",    label = "许愿星（插件自带）", custom = true },
 }
-W.DEFAULT_ICON = "starcoin"
+W.DEFAULT_ICON = "star"
 
 function W.IconInfo(key)
     key = key or (ns.DB and ns.DB.options and ns.DB.options.ui.icon) or W.DEFAULT_ICON

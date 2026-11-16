@@ -7,7 +7,7 @@ local ADDON, ns = ...
 local DB = {}
 ns.DB = DB
 
-DB.SCHEMA = 1
+DB.SCHEMA = 2
 
 -- 默认开团公告与默认宣言（用户可在 设置 → 开团公告与宣言 里改写）
 DB.DEFAULT_START_TEXT = "本次活动采用许愿分配：在团队频道输入 xy 加物品链接即可许愿。\n"
@@ -68,7 +68,7 @@ DB.defaults = {
         ui = {
             skin = "flat",
             showMinimap = true,
-            icon = "starcoin",      -- 小地图按钮图标（见 UI/Widgets.lua 的 W.ICONS）
+            icon = "star",          -- 小地图按钮图标（见 UI/Widgets.lua 的 W.ICONS）
         },
     },
     wishes = {},        -- [规范化名字] = { class=, dkp=, wish=, ts= }
@@ -121,7 +121,12 @@ function DB.Fill(t, defaults)
 end
 
 -- 版本升级：migrations[n] 把 schema n-1 的数据升级到 n
-DB.migrations = {}
+DB.migrations = {
+    -- 2：测试期间默认图标换过两次，统一改回"许愿星"
+    [2] = function(t)
+        if type(t.options) == "table" and type(t.options.ui) == "table" then t.options.ui.icon = "star" end
+    end,
+}
 
 function DB.Upgrade(t)
     local from = tonumber(t.schema) or DB.SCHEMA
