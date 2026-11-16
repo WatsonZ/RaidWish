@@ -54,7 +54,7 @@ T.eq(P.Parse("xy 我要 " .. L1).kind, "invalid", "夹杂其他文字")
 T.eq(P.Parse("xy").kind, "invalid", "只有 xy")
 T.eq(P.Parse("xy []").kind, "invalid", "空中括号")
 T.eq(P.Parse("xyz 哈哈").kind, "invalid", "xy 开头的普通聊天判为无效（不改原许愿）")
-T.eq(P.Parse("xy 碧空之歌").kind, "invalid", "不带中括号的名字无效")
+T.eq(P.Parse("xy 碧空之歌").items[1].name, "碧空之歌", "不带括号的名字也算许愿")
 
 -- txy 代许愿
 r = P.Parse("txy 圣光老王 " .. L1)
@@ -64,9 +64,11 @@ T.eq(ids(r), "19364", "代许愿物品")
 r = P.Parse("TXY 某人 [手打][另一个]")
 T.eq(r.kind, "proxy", "TXY 大写")
 T.eq(ids(r), "手打,另一个", "代许愿多件")
-r = P.Parse("txy 某人 要这个")
-T.eq(r.kind, "invalid", "txy 内容非法")
-T.eq(r.target, "某人", "非法时仍给出对象")
+r = P.Parse("txy 某人 要这个 " .. L1)
+T.eq(r.target, "某人 要这个", "链接前面的文字都当作名字（团里没有这个人，录入时会被忽略）")
+r = P.Parse("txy 某人 某某 要这个 " .. L1 .. " 哈")
+T.eq(r.kind, "invalid", "txy 链接和文字混在一起：无效")
+T.eq(r.target, "某人 某某 要这个", "无效时仍给出对象")
 T.eq(P.Parse("txy 某人").kind, "none", "txy 缺物品：不是许愿消息（至少要有 3 个词）")
 
 -- 非 xy 模式：直接贴链接
@@ -103,12 +105,22 @@ local r3 = P.Parse("txy 张三 李四 地板")
 T.eq(r3.target .. "/" .. tostring(r3.items[1].floor), "张三 李四/true", "txy 名 姓 地板")
 local r4 = P.Parse("txy 张三 " .. L1)
 T.eq(r4.target, "张三", "txy 只写名")
-T.eq(P.Parse("txy 张三 李四 乱写").kind, "invalid", "txy 内容不合法")
+T.eq(P.Parse("txy 张三 李四 墓碑节杖").target .. "/" .. P.Parse("txy 张三 李四 墓碑节杖").items[1].name, "张三 李四/墓碑节杖", "txy 名 姓 物品名（不带括号）")
 
 -- 全角括号（中文输入法）
 T.eq(P.Parse("xy【墓碑节杖】").items[1].name, "墓碑节杖", "【】当成 [ ]")
 T.eq(P.Parse("xy ［墓碑节杖］").items[1].name, "墓碑节杖", "［］当成 [ ]")
 T.eq(P.Parse("xy【地板】").items[1].floor, true, "【地板】")
 T.eq(P.Parse("txy 张三 李四 【手打物品】").target, "张三 李四", "txy 名 姓 【物品】")
-T.eq(P.Parse("xy 墓碑节杖").kind, "invalid", "不带括号的名字仍然无效")
+T.eq(P.Parse("xy 墓碑节杖").items[1].name, "墓碑节杖", "xy 物品名（不带括号）")
+local multi = P.Parse("xy 墓碑节杖 碧空之歌、迅击戒指").items
+T.eq(#multi .. "/" .. multi[3].name, "3/迅击戒指", "不带括号的多件：空格或、分隔")
+T.eq(P.Parse("xy 我要这个 [墓碑节杖]").kind, "invalid", "文字和括号混在一起仍然无效")
+T.eq(P.Parse("xyz 哈哈").kind, "invalid", "xy 后面没有空格的普通聊天不算")
+T.eq(P.Parse("xy 地板").items[1].floor, true, "xy 地板 仍是地板")
+
+-- 不带括号的文字（简称）：记成许愿，但标为 text
+local ft = P.Parse("xy 墓碑").items[1]
+T.eq(tostring(ft.text) .. "/" .. ft.name, "true/墓碑", "不带括号的文字标为 text")
+T.eq(P.Parse("xy [墓碑节杖]").items[1].text, nil, "带括号的名字不是 text")
 

@@ -14,9 +14,10 @@ function Parser.NormalizeBrackets(text)
 end
 
 -- 校验许愿内容并提取物品。
--- 只允许物品链接和 [物品名]，可以用空白分隔；至少要有一件；夹杂其他文字则无效。
+-- 允许：物品链接、[物品名]（可以用空白分隔）；或者 allowBare 为真时，不带括号的文字（用空格或"、"分隔，可以是简称）。
+-- 链接、括号和不带括号的文字混在一起则无效（例如"xy 我要这个 [物品]"）。至少要有一件。
 -- 返回物品数组，无效时返回 nil。
-function Parser.ExtractItems(content)
+function Parser.ExtractItems(content, allowBare)
     if type(content) ~= "string" then return nil end
     local trimmed = ns.Util.Trim(Parser.NormalizeBrackets(content))
     if trimmed == "" then return nil end
@@ -30,6 +31,16 @@ function Parser.ExtractItems(content)
     local links = ns.Items.ParseLinks(trimmed)
     local rest = ns.Items.StripLinks(trimmed)
     local names = {}
+    -- 不带括号的文字（可以是简称）：整条里没有链接也没有 [ ]。记成许愿，但标为 text，
+    -- 不参与自动匹配（不自动出分、不自动扣分、不自动标记完成），由团长人工处理
+    local freeText = false
+    if allowBare and #links == 0 and not rest:find("[%[%]]") then
+        for word in rest:gsub("、", " "):gmatch("%S+") do
+            if word ~= Parser.FLOOR_NAME then names[#names + 1] = word end
+        end
+        rest = ""
+        freeText = true
+    end
     rest = rest:gsub("%[(.-)%]", function(inner)
         names[#names + 1] = inner
         return " "
@@ -50,7 +61,7 @@ function Parser.ExtractItems(content)
         local key = ns.Items.CleanName(name)
         if key ~= "" and not seenName[key] then
             seenName[key] = true
-            items[#items + 1] = { name = name, done = false }
+            items[#items + 1] = { name = name, done = false, text = freeText or nil }
         end
     end
     if #items == 0 then return nil end
@@ -85,21 +96,26 @@ function Parser.Parse(text, opts)
             target, content = rest:sub(1, at - 1), rest:sub(at)
         else
             target = rest:match("^(.-)%s*" .. Parser.FLOOR_NAME .. "$")
-            if target then content = Parser.FLOOR_NAME
-            else target, content = rest:match("^(%S+)%s+(.+)$") end
+            if target then
+                content = Parser.FLOOR_NAME
+            else
+                local a, b, c = rest:match("^(%S+)%s+(%S+)%s+(.+)$")
+                if a then target, content = a .. " " .. b, c
+                else target, content = rest:match("^(%S+)%s+(.+)$") end
+            end
         end
         target = target and ns.Util.Trim(target)
         if target == "" then target = nil end
     end
     if target and content then
-        local items = Parser.ExtractItems(content)
+        local items = Parser.ExtractItems(content, true)
         if not items then return { kind = "invalid", raw = msg, target = target } end
         return { kind = "proxy", target = target, items = items, raw = msg }
     end
 
-    -- xy 开头（不分大小写，后面可以没有空格）
+    -- xy 开头（不分大小写，后面可以没有空格）；不带括号的物品名要求 xy 后面有空格（"xyz 哈哈"不算）
     if msg:sub(1, 2):lower() == "xy" then
-        local items = Parser.ExtractItems(msg:sub(3))
+        local items = Parser.ExtractItems(msg:sub(3), msg:find("^[Xx][Yy]%s") ~= nil)
         if not items then return { kind = "invalid", raw = msg } end
         return { kind = "wish", items = items, raw = msg }
     end

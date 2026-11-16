@@ -3,7 +3,7 @@
 --
 -- 记录结构（存档 RaidWishDB.wishes[规范化名字]）：
 --   { class = "WARRIOR", dkp = 4, ts = 时间戳, wish = nil | { raw = 原文, items = { 物品... } } }
--- 物品：{ id = 数字或 nil, name = 名字, done = 布尔, floor = 布尔（"地板"许愿） }
+-- 物品：{ id = 数字或 nil, name = 名字, done = 布尔, floor = 布尔（"地板"许愿）, text = 布尔（不带括号的文字/简称，人工处理） }
 local ADDON, ns = ...
 
 local WishModel = {}
@@ -33,14 +33,15 @@ end
 local function CopyItems(items)
     local out = {}
     for i, it in ipairs(items or {}) do
-        out[i] = { id = it.id, name = it.name, done = it.done and true or false, floor = it.floor and true or nil }
+        out[i] = { id = it.id, name = it.name, done = it.done and true or false, floor = it.floor and true or nil,
+            text = it.text and true or nil }
     end
     return out
 end
 
 -- 物品是否与 ref 匹配（ref：{ id=, name= } 或物品 ID 或名字）；地板许愿不与任何具体物品匹配
 local function ItemMatches(it, ref)
-    if it.floor then return false end
+    if it.floor or it.text then return false end         -- 地板、不带括号的文字（简称）不参与自动匹配
     return ns.Items.SameItem({ id = it.id, name = it.name }, ref)
 end
 
@@ -109,7 +110,7 @@ function WishModel.EncodeItems(items)
             parts[#parts + 1] = tostring(it.id) .. ":" .. d
         else
             local name = tostring(it.name or ""):gsub(";", "；"):gsub("\t", " ")
-            parts[#parts + 1] = "n:" .. name .. ":" .. d
+            parts[#parts + 1] = (it.text and "t:" or "n:") .. name .. ":" .. d
         end
     end
     return table.concat(parts, ";")
@@ -127,9 +128,9 @@ function WishModel.DecodeItems(s)
             if fd then
                 items[#items + 1] = { name = WishModel.FLOOR_NAME, floor = true, done = fd == "1" }
             else
-                local name, nd = part:match("^n:(.*):([01])$")
+                local kind, name, nd = part:match("^([nt]):(.*):([01])$")
                 if name and name ~= "" then
-                    items[#items + 1] = { name = name, done = nd == "1" }
+                    items[#items + 1] = { name = name, done = nd == "1", text = kind == "t" or nil }
                 end
             end
         end

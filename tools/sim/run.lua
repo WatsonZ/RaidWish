@@ -52,6 +52,11 @@ Sim.Same(A, B, "改许愿后两端一致")
 Sim.Same(A, C, "丙 一致")
 Sim.Check(Sim.ChatHas("注意：迅击戒指 已有 2 人许愿"), "重复许愿警报")
 Sim.Check(A.ns.Wish.model:Get("乙").wish.items[1].id == 212395, "非法内容不改原许愿")
+C.say("xy 墓碑"); Sim.Run(2)
+local dw = A.ns.Wish.model:Get("丙").wish
+Sim.Check(dw and dw.items[1].name == "墓碑" and dw.items[1].text == true, "不带括号的文字（简称）也能许愿，标为人工处理")
+Sim.Check(B.ns.Wish.model:Get("丙").wish.items[1].text == true, "简称许愿同步给团员时保留标记")
+C.say("XY" .. L2); Sim.Run(2)                     -- 恢复 丙 原来的许愿，后面的场景要用
 Sim.Check(Sim.ChatHas("「迅击戒指」有 2 人许愿："), "许愿团长发自动查询")
 Sim.Check(not Sim.ChatHas("我已许愿"), "团员端不发\"我已许愿\"")
 

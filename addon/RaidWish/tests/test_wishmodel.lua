@@ -127,3 +127,17 @@ m:ReplaceAll({ ["戊"] = { dkp = 1 } })
 T.ok(m.store == ref and store["甲"] == nil and store["戊"].dkp == 1, "就地替换，保持存档表引用")
 m:ClearAll()
 T.eq(next(store), nil, "清空")
+
+-- 不带括号的文字（简称）：同步编码保留 text 标记；不参与自动匹配
+do
+    local items = { { name = "墓碑", done = false, text = true }, { name = "碧空之歌", done = false } }
+    local enc2 = M.EncodeItems(items)
+    T.eq(enc2, "t:墓碑:0;n:碧空之歌:0", "text 项用 t: 前缀")
+    local back = M.DecodeItems(enc2)
+    T.eq(tostring(back[1].text) .. "/" .. tostring(back[2].text), "true/nil", "解码后保留 text 标记")
+    local tr = { wish = { items = { { name = "碧空之歌", done = false, text = true } } } }
+    T.ok(not M.WantsItem(tr, { name = "碧空之歌" }), "text 项不参与自动匹配（不自动出分、不自动扣分）")
+    tr.wish.items[1].text = nil
+    T.ok(M.WantsItem(tr, { name = "碧空之歌" }), "带括号的名字照常匹配")
+end
+
