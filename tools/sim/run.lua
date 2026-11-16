@@ -457,18 +457,7 @@ Sim.Check(er.wish.items[1].floor, "txy 只写名（团里唯一）也能代许�
 section("小地图按钮、皮肤切换")
 local mm = A.env.RaidWishMinimapButton
 Sim.Check(mm ~= nil and mm:IsShown(), "小地图按钮")
-Sim.Check(mm.icon._tex and mm.icon._tex:find("MinimapButton", 1, true) ~= nil, "默认图标：许愿星")
-A.ns.Main:Show("set"); A.ns.Settings:Select("ui")
-local uiPage
-for _, c in ipairs(A.ns.Settings.cats) do if c.key == "ui" then uiPage = c.frame end end
-local starRadio = Sim.Find(uiPage, function(w) return w._label and w._label._text and w._label._text:find("许愿星", 1, true) end)
-    or Sim.Find(uiPage, function(w) return w._fs and w._fs._text and w._fs._text:find("许愿星", 1, true) end)
-Sim.Check(starRadio ~= nil, "设置 → 界面 有图标选项")
-A.ns.DB.options.ui.icon = "dice"; A.ns.Events:Fire("RW_ICON_CHANGED")
-Sim.Check(mm.icon._tex:find("INV_Misc_Dice_01", 1, true) ~= nil, "换成骰子后小地图按钮跟着变")
-A.ns.DB.options.ui.icon = "star"; A.ns.Events:Fire("RW_ICON_CHANGED")
-Sim.Check(mm.icon._tex:find("Images", 1, true) ~= nil, "换回插件自带的许愿星")
-A.ns.DB.options.ui.icon = "star"; A.ns.Events:Fire("RW_ICON_CHANGED")
+Sim.Check(mm.icon._tex and mm.icon._tex:find("MinimapButton", 1, true) ~= nil, "小地图按钮图标：许愿星")
 local wasShown = A.ns.Main:IsShown()
 mm._scripts.OnClick(mm, "LeftButton")
 Sim.Check(A.ns.Main:IsShown() ~= wasShown, "左键开关主窗口")

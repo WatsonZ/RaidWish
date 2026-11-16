@@ -13,40 +13,10 @@ local CIRCLE_MASK = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
 
 W.Debounce = ns.Debounce
 
--- 小地图按钮 / 关于页可选的图标：插件设计的三个、游戏自带的物品图标（和其他插件按钮风格一致），以及最早的"许愿星"
-local IMG = "Interface\\AddOns\\" .. ADDON .. "\\Images\\"
-W.ICONS = {
-    { key = "star",     label = "许愿星（默认）", custom = true },
-    { key = "starcoin", label = "星纹金币（插件设计）", path = IMG .. "Icon_StarCoin" },
-    { key = "wishorb",  label = "许愿宝珠（插件设计）", path = IMG .. "Icon_WishOrb" },
-    { key = "meteor",   label = "流星许愿（插件设计）", path = IMG .. "Icon_Meteor" },
-    { key = "coin",    label = "金币",     path = "Interface\\Icons\\INV_Misc_Coin_17" },
-    { key = "coins",   label = "一摞金币", path = "Interface\\Icons\\INV_Misc_Coin_02" },
-    { key = "gift",    label = "金色礼盒", path = "Interface\\Icons\\INV_Misc_Gift_05" },
-    { key = "chest",   label = "宝箱",     path = "Interface\\Icons\\INV_Box_02" },
-    { key = "scroll",  label = "封印卷轴", path = "Interface\\Icons\\INV_Scroll_11" },
-    { key = "pearl",   label = "许愿宝珠", path = "Interface\\Icons\\INV_Misc_Gem_Pearl_04" },
-    { key = "dice",    label = "骰子",     path = "Interface\\Icons\\INV_Misc_Dice_01" },
-    { key = "coinbag", label = "钱袋",     path = "Interface\\Icons\\INV_Misc_CoinBag_Special" },
-}
-W.DEFAULT_ICON = "star"
-
-function W.IconInfo(key)
-    key = key or (ns.DB and ns.DB.options and ns.DB.options.ui.icon) or W.DEFAULT_ICON
-    for _, it in ipairs(W.ICONS) do if it.key == key then return it end end
-    return W.ICONS[1]
-end
-
--- 把图标贴到贴图上。游戏图标裁掉一圈自带的边框；贴图找不到时退回插件自带的图标
-function W.ApplyIcon(tex, key)
-    local it = W.IconInfo(key)
-    local path = it.custom and W.Textures.minimapIcon or it.path
-    local ok = tex:SetTexture(path)
-    if ok == false then
-        tex:SetTexture(W.Textures.minimapIcon)
-        it = { custom = true }
-    end
-    if it.custom then tex:SetTexCoord(0, 1, 0, 1) else tex:SetTexCoord(0.07, 0.93, 0.07, 0.93) end
+-- 插件图标"许愿星"（小地图按钮、关于页）
+function W.ApplyIcon(tex)
+    tex:SetTexture(W.Textures.minimapIcon)
+    tex:SetTexCoord(0, 1, 0, 1)
 end
 
 -- 其他界面文件用到的贴图集中在这里

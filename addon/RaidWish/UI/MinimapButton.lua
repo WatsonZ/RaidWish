@@ -95,6 +95,3 @@ end)
 ns.Events:On("RW_MINIMAP_OPTION", function() Btn:Refresh() end)
 ns.Events:On("RW_RESET_POSITIONS", function() Btn:Refresh() end)
 
-ns.Events:On("RW_ICON_CHANGED", function()
-    if button and button.icon then W.ApplyIcon(button.icon) end
-end)

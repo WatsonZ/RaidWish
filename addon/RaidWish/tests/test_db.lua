@@ -70,7 +70,6 @@ local mOld = DB.Prepare({ options = { autoMinDkp = false } })
 T.eq(mOld.options.autoDeduct, false, "旧字段 autoMinDkp 的值沿用到 autoDeduct")
 T.eq(mOld.options.autoMinDkp, nil, "旧字段删除")
 
--- 迁移 2：图标统一改回许愿星
-T.eq(DB.Prepare({ schema = 1, options = { ui = { icon = "coin" } } }).options.ui.icon, "star", "旧存档的图标改回许愿星")
-T.eq(DB.Prepare({ schema = 2, options = { ui = { icon = "dice" } } }).options.ui.icon, "dice", "新存档里自己选的图标保留")
+-- 迁移 2：去掉"小地图图标"选项后清掉旧字段
+T.eq(DB.Prepare({ schema = 1, options = { ui = { icon = "coin" } } }).options.ui.icon, nil, "旧存档里的图标选项被清掉")
 

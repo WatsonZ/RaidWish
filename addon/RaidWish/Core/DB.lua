@@ -68,7 +68,6 @@ DB.defaults = {
         ui = {
             skin = "flat",
             showMinimap = true,
-            icon = "star",          -- 小地图按钮图标（见 UI/Widgets.lua 的 W.ICONS）
         },
     },
     wishes = {},        -- [规范化名字] = { class=, dkp=, wish=, ts= }
@@ -122,9 +121,9 @@ end
 
 -- 版本升级：migrations[n] 把 schema n-1 的数据升级到 n
 DB.migrations = {
-    -- 2：测试期间默认图标换过两次，统一改回"许愿星"
+    -- 2：测试期间加过"小地图图标"选项，已去掉，清掉存档里留下的字段
     [2] = function(t)
-        if type(t.options) == "table" and type(t.options.ui) == "table" then t.options.ui.icon = "star" end
+        if type(t.options) == "table" and type(t.options.ui) == "table" then t.options.ui.icon = nil end
     end,
 }
 

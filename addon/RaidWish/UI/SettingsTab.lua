@@ -312,18 +312,6 @@ Settings:AddCategory("ui", "界面", 10, function(_, L)
         end)
     end
     L:Hint("切换后立即生效，不需要重载界面。")
-    L:Heading("小地图图标")
-    for _, it in ipairs(W.ICONS) do
-        local r = L:Radio("      " .. it.label, it.key, function() return O().ui.icon or W.DEFAULT_ICON end, function(v)
-            O().ui.icon = v
-            ns.Events:Fire("RW_ICON_CHANGED")
-        end)
-        local tex = r:CreateTexture(nil, "ARTWORK")
-        tex:SetSize(20, 20)
-        tex:SetPoint("LEFT", r, "LEFT", 24, 0)
-        W.ApplyIcon(tex, it.key)
-    end
-    L:Hint("游戏自带的图标和其他插件的按钮风格一致；插件列表里显示的图标不随这里改变。")
     L:Heading("显示")
     L:Check("显示小地图按钮", function() return O().ui.showMinimap end, function(v)
         O().ui.showMinimap = v
