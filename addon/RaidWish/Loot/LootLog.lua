@@ -234,6 +234,20 @@ end
 
 local function Say(text) ns.Chat:Send(text, "RAID") end
 
+-- 最近 3 小时内这个人赢下这件装备、还没扣过分的拍卖结果
+LootLog.AUCTION_WINDOW = 3 * 3600
+function LootLog.FindAuctionWin(player, id)
+    local list = ns.DB.main.auction and ns.DB.main.auction.results or {}
+    local now = time()
+    for i = #list, 1, -1 do
+        local r = list[i]
+        if r.winner == player and r.id == id and not r.charged and now - (r.ts or 0) <= LootLog.AUCTION_WINDOW then
+            return r
+        end
+    end
+    return nil
+end
+
 -- 许愿相关的处理（只在许愿团长端执行）。返回扣除的分数、是否许愿物品。
 local function ApplyWish(player, id, quality)
     local rec = M():Get(player)
@@ -243,9 +257,24 @@ local function ApplyWish(player, id, quality)
     local wanted = WM.WantsItem(rec, ref)           -- 拾取前是否许愿了这件
     local points, changed = 0, false
 
-    -- 自动扣分
+    -- 自动扣分，优先按拍卖结果：这个人在拍卖里赢了这件、还没扣过，就按拍卖出的分扣（不限时间、不看品质设置）
+    local won = O().autoDeduct and LootLog.FindAuctionWin(player, id) or nil
+    if won then
+        won.charged = true
+        if won.score then
+            local rule = LootLog.DeductRule(won.score, WM.IsFullyDone(rec), WM.HasWish(rec), wanted)
+                or { deduct = won.score, complete = false, msg = "%s 扣 " .. won.score .. " 分，还剩 %d 分" }
+            if rule.complete then M():MarkItemDone(player, ref) end
+            if rule.deduct ~= 0 then M():AddDkp(player, -rule.deduct) end
+            points = rule.deduct
+            changed = true
+            Say("拍卖结算：" .. rule.msg:format(player, tonumber(rec.dkp) or 0))
+        end
+        ns.WishChat.bids[player] = nil
+    end
+    -- 没有拍卖记录时，按拾取前 60 秒内在团队频道出的分扣
     local bid = ns.WishChat.bids[player]
-    if O().autoDeduct and bid and (GetTime() - bid.time) <= LootLog.BID_WINDOW and LootLog.DeductQuality(quality, O()) then
+    if not won and O().autoDeduct and bid and (GetTime() - bid.time) <= LootLog.BID_WINDOW and LootLog.DeductQuality(quality, O()) then
         local rule = LootLog.DeductRule(bid.value, WM.IsFullyDone(rec), WM.HasWish(rec), wanted)
         if rule then
             if rule.complete then M():MarkItemDone(player, ref) end
@@ -265,7 +294,7 @@ local function ApplyWish(player, id, quality)
         end
     end
     if changed then ns.WishSync:SendRow(player) end
-    return points, wanted
+    return points, wanted, won
 end
 
 -- 品质未知时先等物品信息到达再决定是否记录
@@ -282,10 +311,15 @@ function LootLog:Process(player, id, link)
     if not player or player == "" or not id then return end
     if IsDuplicate(player, id) then return end
     WithQuality(id, link, function(q)
-        local points, wish = 0, false
-        if IsLeader() then points, wish = ApplyWish(player, id, q) end
-        if LootLog.QualityRecorded(q, O().qualityFilters) then
-            self:Add(id, player, points, wish)
+        local points, wish, won = 0, false, nil
+        if IsLeader() then points, wish, won = ApplyWish(player, id, q) end
+        if LootLog.QualityRecorded(q, O().qualityFilters) or won then
+            local e = self:Add(id, player, points, wish)
+            -- 拍卖赢家拿到了这件：这条掉落直接记为已拍，不再进待拍列表
+            if won then
+                self:SetSold(e.uid, won.score and { winner = player, score = won.score, roll = won.roll }
+                    or { winner = player, roll = won.roll })
+            end
         end
         ns.Events:Fire("RW_LOOT_SEEN", id, link, player, q)
     end)

@@ -54,7 +54,7 @@ T.eq(sends(acts), "ARESET(乙:3)", "出分后广播出分表并重新计时")
 T.eq(m.phaseStart, 2, "出分重置计时")
 T.eq(#run(m, 2, 8.9), 0, "出分后 7 秒内没有动作")
 local all = run(m, 9, 13)
-T.eq(chats(all), "RAID:三 | RAID:二 | RAID:一 | RAID_WARNING:出分截止！ | RAID_WARNING:乙 以三分拍得 " .. LINK .. "，请团长在许愿助手里扣分",
+T.eq(chats(all), "RAID:三 | RAID:二 | RAID:一 | RAID_WARNING:出分截止！ | RAID_WARNING:乙 以三分拍得 " .. LINK .. "，拾取时自动扣分",
     "倒数与结算文案")
 T.ok(has(all, "voice", "name", "countdown"), "倒数语音")
 local r = has(all, "result", "winner", "乙")
@@ -101,7 +101,7 @@ _, rec = m:Roll("乙", 100, 1, 100, 13)
 T.ok(not rec, "每人只认第一次 Roll")
 all = run(m, 13, 23)
 T.ok(chats(all):find("RAID:三 | RAID:二 | RAID:一", 1, true), "Roll 最后 3 秒倒数")
-T.ok(chats(all):find("乙 以 Roll 点 80 拿到 " .. LINK .. "，出价三分，请团长在许愿助手里扣分", 1, true), "Roll 结算文案")
+T.ok(chats(all):find("乙 以 Roll 点 80 拿到 " .. LINK .. "，出价三分，拾取时自动扣分", 1, true), "Roll 结算文案")
 r = has(all, "result", "winner", "乙")
 T.ok(r and r.roll == 80 and r.score == 3, "结算结果含 Roll 点与出分")
 
@@ -194,3 +194,25 @@ v:OnCancel()
 T.eq(v.state, "idle", "镜像：取消")
 local b, o = AM.DecodeBids("")
 T.ok(next(b) == nil and #o == 0, "空出分表")
+
+-- 比最高分低的出分不打断倒数
+do
+    local m2 = AM.New()
+    m2:Start(19364, LINK, "甲", 0)
+    m2:Bid("乙", 5, 1)
+    run(m2, 1, 8.2)                                 -- 第 7 秒开始倒数
+    T.eq(m2.state, "count", "最高分 5 分后进入倒数")
+    local a2 = m2:Bid("丙", 2, 8.3)
+    T.eq(m2.state, "count", "出 2 分（比 5 分低）不打断倒数")
+    T.eq(m2.bids["丙"], 2, "低分照样记下")
+    T.ok(not chats(a2):find("三", 1, true), "低分不会重新喊三")
+    m2:Bid("丁", 5, 8.5)
+    T.eq(m2.state, "bid", "追平最高分：重新计时（之后进 Roll）")
+    run(m2, 8.5, 16.2)
+    T.eq(m2.state, "count", "重新进入倒数")
+    m2:Pass("丙", 16.3)
+    T.eq(m2.state, "count", "非最高分的人放弃不打断倒数")
+    m2:Pass("丁", 16.4)
+    T.eq(m2.state, "bid", "最高分之一放弃：重新计时")
+end
+

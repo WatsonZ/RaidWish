@@ -223,7 +223,14 @@ function AM:Bid(name, score, now, check)
     if self.state ~= "bid" and self.state ~= "count" and self.state ~= "wait" then return acts end
     local warn = check and check(name, score)
     if warn then return Chat(acts, warn, "RAID") end
+    -- 只有能改变结果的出分（不低于当前最高分：追平会进 Roll、更高会领先）才重新计时；
+    -- 比最高分低的出分照样记下，但不打断倒数
+    local changesResult = score >= self:HighestBid()
     SetBid(self, name, score)
+    if not changesResult then
+        Send(acts, "ARESET", self:EncodeBids())
+        return acts
+    end
     if self.state == "bid" or self.state == "count" then
         self.state = "bid"
         self.phaseStart = now
@@ -236,7 +243,14 @@ end
 function AM:Pass(name, now)
     local acts = {}
     if not self.isAuctioneer then return acts end
+    local was = self.bids[name]
+    local top = self:HighestBid()
     if not RemoveBid(self, name) then return acts end
+    -- 放弃的不是最高分的人：结果不变，只同步出分表，不重新计时
+    if was < top then
+        Send(acts, "ARESET", self:EncodeBids())
+        return acts
+    end
     if self.state == "bid" or self.state == "count" then
         self.state = "bid"
         self.phaseStart = now
@@ -313,7 +327,7 @@ local function EvaluateBids(self, acts, now)
         return
     end
     if max > 0 and #who == 1 then
-        Chat(acts, who[1] .. " 以" .. AM.ChineseNumeral(max) .. "分拍得 " .. self.link .. "，请团长在许愿助手里扣分", "RAID_WARNING")
+        Chat(acts, who[1] .. " 以" .. AM.ChineseNumeral(max) .. "分拍得 " .. self.link .. "，拾取时自动扣分", "RAID_WARNING")
         Settle(self, acts, now, who[1], max, nil)
         return
     end
@@ -331,7 +345,7 @@ local function EvaluateRolls(self, acts, now)
         else
             local score = self.bids[winner] or 1
             Chat(acts, winner .. " 以 Roll 点 " .. max .. " 拿到 " .. self.link .. "，出价"
-                .. AM.ChineseNumeral(score) .. "分，请团长在许愿助手里扣分", "RAID_WARNING")
+                .. AM.ChineseNumeral(score) .. "分，拾取时自动扣分", "RAID_WARNING")
             Settle(self, acts, now, winner, score, max)
         end
         return

@@ -234,9 +234,26 @@ local function CanHost()
     return true
 end
 
+-- 许愿还没截止时不能开拍：开拍后才许愿的人也能拿到许愿加分，不公平。
+-- 自己是许愿团长时弹窗问"截止许愿并开拍"，确定后截止许愿再执行 retry；否则提示去找许愿团长。返回 true 表示可以继续
+local function WishClosed(retry)
+    if not ns.Wish:InProgress() then return true end
+    if ns.Wish:IsLeader() then
+        ns.Widgets.Confirm("WISH_OPEN", "许愿还没截止。\n开拍前要先截止许愿，否则开拍后才许愿的人也能拿到许愿加分。\n\n截止许愿并开拍吗？",
+            function()
+                ns.WishChat:Stop()
+                retry()
+            end, { okText = "截止许愿并开拍" })
+    else
+        ns.Print("许愿还没截止，请许愿团长 " .. tostring(ns.Wish:LeaderName()) .. " 先点\"停止许愿\"再开拍。")
+    end
+    return false
+end
+
 function Auction:StartItem(id)
     id = tonumber(id)
     if not id or not CanHost() then return false end
+    if not WishClosed(function() Auction:StartItem(id) end) then return false end
     if model.state == "settle" then model:Reset() end
     Execute(model:Start(id, Auction.LinkFor(id), Me(), Now()))
     OnStarted(id)
@@ -250,6 +267,8 @@ function Auction:DirectRoll(id)
         id = model.item
         model:Reset()
     elseif not CanHost() then
+        return false
+    elseif not WishClosed(function() Auction:DirectRoll(id) end) then
         return false
     end
     if not id then

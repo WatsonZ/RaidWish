@@ -167,6 +167,16 @@ local function CreateRow(row)
     row.scoreBox:SetPoint("RIGHT", -(PAD + 24), 0)
     row.score = W.Text(row.scoreBox, "text", 13)
     row.score:SetPoint("CENTER")
+    -- 许愿加分：还有没拿到的许愿时显示 +5（出分拍自己许愿的装备时可以多出 5 分）
+    row.bonus = CreateFrame("Frame", nil, row)
+    row.bonus:SetSize(26, 20)
+    row.bonus:SetPoint("RIGHT", row.scoreBox, "LEFT", -28, 0)
+    row.bonus.text = W.Text(row.bonus, "star", 12)
+    row.bonus.text:SetPoint("RIGHT")
+    row.bonus.text:SetText("+5")
+    row.bonus:EnableMouse(true)
+    W.Tooltip(row.bonus, "许愿加分 +5", "拍自己许愿的装备时，可以多出 5 分：最多出 现有分数 + 5。\n"
+        .. "出 5 分不扣分，出 6~9 分只扣超出 5 的部分。拿到许愿的装备后加分就没了。")
     row.minus = W.GlyphButton(row, "minus", 18, 18, function()
         ns.WishChat:MinusDkp(row.data.name, 1)
     end)
@@ -238,6 +248,7 @@ local function UpdateRow(row, data)
         row.none:Show()
     end
     row.score:SetText(tostring(tonumber(rec.dkp) or 0))
+    row.bonus:SetShown(ns.WishModel.HasWish(rec) and not ns.WishModel.IsFullyDone(rec))
     UpdatePM(row)
 end
 
@@ -455,6 +466,7 @@ local function Create(content, footLeft)
     CreateBars(page)
     CreateHead(page)
     list = W.List(page, { rowHeight = 36, createRow = CreateRow, updateRow = UpdateRow })
+    Tab.list = list
     list:SetPoint("TOPLEFT", 0, -72)
     list:SetPoint("BOTTOMRIGHT", 0, 0)
     CreateFoot(footLeft)

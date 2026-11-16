@@ -280,7 +280,12 @@ Sim.Check(pillA:IsShown(), "团长端显示\"待拍\"按钮")
 Sim.Check(not B.env.RaidWishPendingButton:IsShown(), "团员端不显示\"待拍\"按钮")
 Sim.Click(pillA)
 Sim.Check(Sim.MenuTexts(A):find("碧空之歌", 1, true) ~= nil, "待拍菜单列出物品：" .. Sim.MenuTexts(A))
+Sim.Check(A.ns.Wish:InProgress(), "（前提）许愿还没截止")
 Sim.ClickMenu(A, "碧空之歌"); Sim.Run(0.3)
+Sim.Check(not A.ns.Auction.model:InProgress() and A.ns.Widgets.lastDialog == "RAIDWISH_WISH_OPEN", "许愿没截止时不能直接开拍，先问是否截止")
+Sim.Check(not B.ns.Auction:StartItem(19364), "非许愿团长不能在许愿期间开拍")
+Sim.Click(A.env.RaidWishDialog.ok); Sim.Run(1)
+Sim.Check(not A.ns.Wish:InProgress(), "选\"截止许愿并开拍\"：许愿已截止")
 Sim.Check(Sim.ChatHas("开拍：" .. L1 .. "，请在团队频道出分"), "开拍通报")
 for _, c in ipairs({ A, B, C, D }) do
     Sim.Check(c.env.RaidWishAuctionPopup:IsShown(), c.name .. " 弹出拍卖窗口")
@@ -314,13 +319,29 @@ Sim.Check(D.env.RaidWishAuctionPopup.err._text == "没出成：已经有人出�
 C.say("9"); Sim.Run(0.5)
 Sim.Check(Sim.ChatHas("注意：丙 没有许愿这件装备，出的 9 分不算"), "非许愿装备出 9 分被警告")
 Sim.Run(12)
-Sim.Check(Sim.ChatHas("乙 以五分拍得 " .. L1 .. "，请团长在许愿助手里扣分"), "结算通报")
+Sim.Check(Sim.ChatHas("乙 以五分拍得 " .. L1 .. "，拾取时自动扣分"), "结算通报")
 for _, c in ipairs({ A, B, D }) do
     local ok = false
     for _, x in ipairs(c.ns.DB.main.auction.captured) do if x.id == 19364 and x.sold then ok = true end end
     Sim.Check(ok, c.name .. " 标记已拍")
 end
 Sim.Check(#A.ns.DB.main.auction.results == 1 and A.ns.DB.main.auction.results[1].winner == "乙", "结算结果写入记录")
+-- 许愿列表：乙 有没拿到的许愿，分数旁显示 +5
+A.ns.Main:Show("wish")
+local function BonusShown(name)
+    for _, row in ipairs(A.ns.WishTab.list and A.ns.WishTab.list.rows or {}) do
+        if row:IsShown() and row.data and row.data.name == name then return row.bonus:IsShown() end
+    end
+end
+Sim.Check(BonusShown("乙") == true, "还有许愿的人分数旁显示 +5")
+-- 赢家过了很久才拾取：按拍卖结果扣分（出 5 分拍许愿装备：不扣分，许愿完成）
+local dkpB2 = A.ns.Wish.model:Get("乙").dkp
+Sim.Run(90)                                          -- 超过团队频道出分的 60 秒窗口
+Sim.Loot("乙", L1); Sim.Run(3)
+Sim.Check(Sim.ChatHas("拍卖结算：乙 拿到了许愿的装备（出 5 分，不扣分）"), "拾取拍得的装备：按拍卖结果处理")
+Sim.Check(A.ns.Wish.model:Get("乙").dkp == dkpB2, "出 5 分拍许愿装备不扣分")
+Sim.Check(A.ns.DB.main.auction.results[1].charged == true, "拍卖结果标记为已扣")
+Sim.Check(BonusShown("乙") == false, "许愿全部拿到后不再显示 +5")
 Sim.Run(4)
 Sim.Check(not B.env.RaidWishAuctionPopup:IsShown(), "结算后弹窗关闭")
 
@@ -341,7 +362,11 @@ Sim.Click(rollB); Sim.Run(0.2)
 Sim.Check(B.env.RaidWishAuctionPopup.err._text == "你已经 Roll 过了", "重复点 Roll 有提示")
 Sim.Check(A.ns.Auction.model.rolls["丁"] == 70, "拍卖方记录 Roll 点")
 Sim.Run(12)
-Sim.Check(Sim.ChatHas("丁 以 Roll 点 70 拿到 " .. L2 .. "，出价二分，请团长在许愿助手里扣分"), "Roll 结算通报")
+Sim.Check(Sim.ChatHas("丁 以 Roll 点 70 拿到 " .. L2 .. "，出价二分，拾取时自动扣分"), "Roll 结算通报")
+local dkpD = A.ns.Wish.model:Get("丁").dkp
+Sim.Run(90)
+Sim.Loot("丁", L2); Sim.Run(3)
+Sim.Check(A.ns.Wish.model:Get("丁").dkp == dkpD - 2, "Roll 赢家拾取后按出价扣 2 分（" .. tostring(dkpD) .. " → " .. tostring(A.ns.Wish.model:Get("丁").dkp) .. "）")
 Sim.Run(4)
 
 section("取消、P 标记、直接 Roll、/xypm")
@@ -403,6 +428,7 @@ Sim.Check(openUnitMenu(other, "MENU_UNIT_RAID_PLAYER", "丙") == "--,<许愿助�
 Sim.Check(openUnitMenu(L, "MENU_UNIT_RAID_PLAYER", "外人") == "", "不在团里的人不加菜单项")
 Sim.ClickMenu(other, "查询许愿")
 
+A.ns.WishChat:Start(); Sim.Run(3)                  -- 拍卖前截止了许愿，这里重新开始
 section("两段名字（名 姓）")
 local E = Sim.NewClient(ROOT, "坏人 某某", { class = "WARLOCK" })
 Sim.Join("坏人 某某", "WARLOCK", 0); Sim.Run(2)
