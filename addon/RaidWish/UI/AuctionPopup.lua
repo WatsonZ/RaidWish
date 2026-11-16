@@ -491,6 +491,15 @@ ns.Settings:AddCategory("auction", "拍卖", 40, function(_, L)
     local o = ns.DB.options.auction
     L:Heading("播报")
     L:Check("语音播报", function() return o.voice end, function(v) o.voice = v end)
+    local pack = ns.Voice:Pack()
+    if pack then
+        local who = (pack.author and pack.author ~= "") and ("，录音：" .. pack.author) or ""
+        L:Check("使用语音包「" .. (pack.name or "语音包") .. "」" .. who, function() return o.voicePack ~= false end,
+            function(v) o.voicePack = v end)
+        L:Hint("语音包里没有的句子自动用默认语音。语音包的使用限制见语音包文件夹里的授权说明。")
+    else
+        L:Hint("想换成真人语音：另装语音包插件 RaidWish_Voice 即可，不装就用默认语音。")
+    end
     L:Heading("待拍列表记录哪些品质")
     local labels = { [5] = "橙色", [4] = "紫色", [3] = "蓝色", [2] = "绿色", [1] = "白色" }
     for q = 5, 1, -1 do

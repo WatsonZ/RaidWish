@@ -32,7 +32,7 @@ addon/RaidWish/     插件本体（发布时只需要这个文件夹）
 docs/               需求说明、界面效果图、开发文档
 tools/
   sim/              多客户端模拟（本机跑一遍团队流程）
-  voice/            生成语音提示的脚本
+  voice/            生成默认语音、制作可选真人语音包（make_pack.py）的脚本
   icon/             生成小地图图标的脚本
   RaidWishProbe/    接口探测插件（开发用，不随插件发布）
   lua51.py          本机没有 Lua 时用的 Lua 5.1
@@ -52,6 +52,10 @@ uv run --no-project --with lupa python -I tools/lua51.py tools/sim/crash.lua
 ```
 
 三项都通过再提交。详细说明见 [docs/开发工具.md](docs/开发工具.md)。
+
+## 语音包
+
+插件自带合成语音。想用真人语音，另装可选的语音包插件 `RaidWish_Voice`，不装就用默认语音。语音包由作者私下提供，**不在本仓库、不适用 MIT 许可证**，使用限制见语音包里的《语音授权说明.txt》。
 
 ## 许可证
 

@@ -1,5 +1,9 @@
 -- Auction/Voice.lua：语音播报
 -- 开关：设置 → 拍卖 → 语音播报（options.auction.voice）。
+--
+-- 可选语音包：另装的插件 RaidWish_Voice 在加载时登记全局表
+--   RaidWishVoicePack = { path = "Interface\\AddOns\\RaidWish_Voice\\voice\\", name = 名称, author = 录音者, license = 授权说明 }
+-- 装了语音包且"使用语音包"开着时优先播语音包里的同名文件；语音包里缺的句子自动用插件自带的默认语音。
 local ADDON, ns = ...
 
 local Voice = {}
@@ -12,7 +16,23 @@ local lastDelayed = 0
 
 local function Enabled() return ns.DB.options.auction.voice and true or false end
 
+-- 已安装的语音包（没有则返回 nil）
+function Voice:Pack()
+    local p = RaidWishVoicePack
+    if type(p) == "table" and type(p.path) == "string" and p.path ~= "" then return p end
+    return nil
+end
+
+-- 当前是否在用语音包
+function Voice:UsingPack()
+    return self:Pack() ~= nil and ns.DB.options.auction.voicePack ~= false
+end
+
 local function Play(name)
+    if Voice:UsingPack() then
+        local ok, willPlay = pcall(PlaySoundFile, Voice:Pack().path .. name .. ".ogg", "Master")
+        if ok and willPlay then return end
+    end
     PlaySoundFile(PATH .. name .. ".ogg", "Master")
 end
 

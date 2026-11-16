@@ -315,6 +315,14 @@ function Sim.NewClient(root, name, opts)
         ClearCursor = function() Sim.cursor = nil end,
         ChatEdit_InsertLink = function() end,
         PlaySoundFile = function(path)
+            -- 可选语音包：Sim.packFiles 里登记了的才算存在；不存在时和游戏一样返回 false，不算错误
+            local packName = path:match("^Interface\\AddOns\\RaidWish_Voice\\voice\\([%w_]+)%.ogg$")
+            if packName then
+                if not (Sim.packFiles and Sim.packFiles[packName]) then return false end
+                c.sounds = c.sounds or {}
+                c.sounds[#c.sounds + 1] = path
+                return true
+            end
             c.sounds = c.sounds or {}
             c.sounds[#c.sounds + 1] = path
             -- 语音文件必须真的存在：Interface\AddOns\RaidWish\voice\x.ogg → 插件目录下的 voice/x.ogg

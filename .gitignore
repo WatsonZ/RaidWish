@@ -8,3 +8,8 @@ __pycache__/
 .DS_Store
 Thumbs.db
 dist/
+
+# 真人录音和语音包：私下分发，不进公开仓库
+recordings/
+RaidWish_Voice/
+tools/icon/preview20.png

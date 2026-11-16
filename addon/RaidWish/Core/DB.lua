@@ -60,6 +60,7 @@ DB.defaults = {
             showSold = true,
             sameScore = false,      -- 同分 Roll（暂未使用：同分一律 Roll）
             voice = false,          -- 语音播报
+            voicePack = true,       -- 装了语音包时用语音包
             showPendingButton = true, -- 没有拍卖时显示"待拍"按钮
         },
 

@@ -552,6 +552,30 @@ for k in pairs(played) do names[#names + 1] = k end
 table.sort(names)
 Sim.Check(#names >= 10, "拍卖过程中播放过的语音：" .. table.concat(names, ", "))
 
+section("可选语音包")
+local V = lead.ns.Voice
+lead.ns.DB.options.auction.voice = true
+Sim.Check(V:Pack() == nil and not V:UsingPack(), "没装语音包时用默认语音")
+lead.env.RaidWishVoicePack = { path = "Interface\\AddOns\\RaidWish_Voice\\voice\\", name = "测试语音", author = "某人" }
+Sim.packFiles = { won_bid = true }                    -- 语音包里只有一句
+lead.sounds = {}
+Sim.Run(2); V:Play("won_bid")
+Sim.Check(lead.sounds[1] and lead.sounds[1]:find("RaidWish_Voice", 1, true) ~= nil, "装了语音包：播语音包里的")
+Sim.Run(2); V:Play("all_sold")
+Sim.Check(lead.sounds[2] and lead.sounds[2]:find("\\RaidWish\\voice\\all_sold", 1, true) ~= nil, "语音包里没有的句子用默认语音")
+lead.ns.DB.options.auction.voicePack = false
+Sim.Run(2); V:Play("won_bid")
+Sim.Check(lead.sounds[3] and lead.sounds[3]:find("\\RaidWish\\voice\\won_bid", 1, true) ~= nil, "关掉\"使用语音包\"后用默认语音")
+lead.ns.DB.options.auction.voicePack = true
+lead.ns.Main:Show("set"); lead.ns.Settings:Select("auction")
+local auctionPage
+for _, c in ipairs(lead.ns.Settings.cats) do if c.key == "auction" then auctionPage = c.frame end end
+Sim.Check(Sim.Find(auctionPage, function(w) return w._fs and w._fs._text and w._fs._text:find("测试语音", 1, true) end) ~= nil
+    or Sim.Find(auctionPage, function(w) return w._text and tostring(w._text):find("测试语音", 1, true) end) ~= nil, "设置页显示语音包名称")
+lead.env.RaidWishVoicePack = nil
+for i, p in ipairs(lead.sounds) do print("SND", i, p) end
+Sim.packFiles = nil
+
 ------------------------------------------------------------------------
 -- 报告
 ------------------------------------------------------------------------

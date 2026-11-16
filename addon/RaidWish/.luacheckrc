@@ -33,7 +33,7 @@ read_globals = {
     "tinsert", "STANDARD_TEXT_FONT", "ITEM_QUALITY_COLORS", "GameTooltip", "MenuUtil",
     "IsShiftKeyDown", "ChatEdit_InsertLink", "GetCursorPosition", "InCombatLockdown", "ReloadUI",
     "CreateColor", "Menu", "Minimap", "UnitInRaid", "IsInGroup",
-    "RandomRoll", "GetCursorInfo", "ClearCursor", "HandleModifiedItemClick", "hooksecurefunc", "PlaySoundFile",
+    "RandomRoll", "GetCursorInfo", "ClearCursor", "HandleModifiedItemClick", "hooksecurefunc", "PlaySoundFile", "RaidWishVoicePack",
 }
 
 -- 离线测试：在普通 Lua 5.1 下运行，加载模块时用 setfenv 注入假环境
