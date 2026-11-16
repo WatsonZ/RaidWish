@@ -292,6 +292,21 @@ Sim.Check(Sim.ChatHas("[乙][RAID] 5"), "许愿者 1 秒后自动出 5 分")
 Sim.Run(0.5)
 Sim.Check(A.ns.Auction.model.bids["乙"] == 5, "拍卖方记录 乙 出 5 分")
 Sim.Check(D.ns.Auction.model.bids["乙"] == 5, "出分表同步到团员")
+-- 许愿加分 6~9 分：只有许愿了这件装备的人看得到第二排按钮
+local function WishRow(c)
+    local n = 0
+    for _, t in ipairs({ "6 分", "7 分", "8 分", "9 分" }) do
+        local b = Sim.FindButton(c.env.RaidWishAuctionPopup, t)
+        if b and b:IsVisible() then n = n + 1 end
+    end
+    return n
+end
+Sim.Check(WishRow(B) == 4, "许愿了这件的人有 6~9 分按钮")
+Sim.Check(WishRow(D) == 0, "没许愿的人没有 6~9 分按钮")
+local dkpB = B.ns.Wish.model:Get("乙").dkp
+Sim.Check(B.ns.Auction:CheckOwnBid(dkpB + 5) == nil, "许愿的人最多可出 现有分数 + 5（" .. (dkpB + 5) .. " 分）")
+Sim.Check(B.ns.Auction:CheckOwnBid(dkpB + 6) == "分数不够", "超过 现有分数 + 5 提示分数不够")
+Sim.Check(D.ns.Auction:CheckOwnBid(7) == "没出成：7 分只能出给自己许愿的装备。", "没许愿的人出 7 分被拒绝")
 Sim.Click(Sim.FindButton(D.env.RaidWishAuctionPopup, "2 分")); Sim.Run(0.5)
 Sim.Check(not Sim.ChatHas("[丁][RAID] 2"), "已有更高出分时按钮不发分")
 Sim.Check(D.env.RaidWishAuctionPopup.err._text == "没出成：已经有人出了更高的分。", "按钮提示：" .. tostring(D.env.RaidWishAuctionPopup.err._text))
@@ -572,6 +587,9 @@ local auctionPage
 for _, c in ipairs(lead.ns.Settings.cats) do if c.key == "auction" then auctionPage = c.frame end end
 Sim.Check(Sim.Find(auctionPage, function(w) return w._fs and w._fs._text and w._fs._text:find("测试语音", 1, true) end) ~= nil
     or Sim.Find(auctionPage, function(w) return w._text and tostring(w._text):find("测试语音", 1, true) end) ~= nil, "设置页显示语音包名称")
+lead.sounds = {}
+for _, k in ipairs({ "bid_6", "bid_7", "bid_8" }) do Sim.Run(2); V:Play(k) end
+Sim.Check(#lead.sounds == 3, "6、7、8 分有默认语音")
 lead.env.RaidWishVoicePack = nil
 for i, p in ipairs(lead.sounds) do print("SND", i, p) end
 Sim.packFiles = nil

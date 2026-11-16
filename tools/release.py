@@ -36,7 +36,7 @@ def main():
     ap = argparse.ArgumentParser(description="打 RaidWish 发布包")
     ap.add_argument("--voice", help="真人录音所在文件夹（不给就不带真人语音）")
     ap.add_argument("--voice-name", help="语音包名称")
-    ap.add_argument("--voice-author", help="录音者署名")
+    ap.add_argument("--voice-author", help="配音署名")
     ap.add_argument("--mode", choices=mp.MODES, default="enhance", help="录音处理方式，见 tools/voice/make_pack.py")
     ap.add_argument("--out", default="dist")
     ap.add_argument("--ffmpeg")
@@ -73,6 +73,7 @@ def main():
                       mp.license_text(a.voice_name, a.voice_author, public=True), bom=True, crlf=True)
         toc_path = os.path.join(root, "RaidWish.toc")
         toc = io.open(toc_path, encoding="utf-8").read().rstrip("\n")
+        toc = re.sub(r"^(## Author: .*)$", lambda m: m.group(1) + "；配音：" + a.voice_author, toc, count=1, flags=re.M)
         mp.write_text(toc_path, toc + "\n\n# 真人语音包（单独授权，见 voicepack\\" + mp.LICENSE_FILE + "）\nvoicepack\\VoicePack.lua\n")
         license_text += ("\n\n----\nvoicepack 文件夹里的录音不适用以上 MIT 许可证，使用限制见 voicepack/%s。\n"
                          "The recordings in the voicepack folder are NOT covered by the MIT License above; see voicepack/%s.\n"
@@ -87,7 +88,7 @@ def main():
     print("\n发布包：%s" % os.path.abspath(zpath))
     print("内容：RaidWish %s，%d 个文件，%.0f KB；%s" % (
         version, files, os.path.getsize(zpath) / 1024,
-        ("真人语音 %d / %d 句（%s，录音：%s）" % (n_voice, len(mp.KEYS), a.voice_name, a.voice_author)) if a.voice else "不带真人语音"))
+        ("真人语音 %d / %d 句（%s，配音：%s）" % (n_voice, len(mp.KEYS), a.voice_name, a.voice_author)) if a.voice else "不带真人语音"))
     print("解压后的文件夹：%s" % os.path.abspath(root))
     print("检查：uv run --no-project --with lupa python -I tools/lua51.py tools/sim/release_check.lua \"%s\"" % root.replace(os.sep, "/"))
 

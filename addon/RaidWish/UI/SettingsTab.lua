@@ -392,7 +392,9 @@ end
 
 Settings:AddCategory("about", "关于", 90, function(container, L)
     L:Heading("许愿助手 RaidWish")
-    L:Hint("版本 " .. ns.VERSION .. "　·　作者 迪恩温彻斯特、秋枫")
+    local pack = ns.Voice and ns.Voice:Pack()
+    local voiceBy = (pack and pack.author and pack.author ~= "") and ("　·　配音 " .. pack.author) or ""
+    L:Hint("版本 " .. ns.VERSION .. "　·　作者 迪恩温彻斯特、秋枫" .. voiceBy)
     L:Hint("团队许愿、分数、掉落记录与拍卖。团队频道输入 xy 加物品链接即可许愿。")
     L:Space(8)
 

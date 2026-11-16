@@ -20,7 +20,8 @@ import argparse, datetime, glob, io, os, re, shutil, subprocess, sys, tempfile, 
 
 KEYS = [
     ("auction_start", "拍卖开始"), ("my_wish", "你许愿的装备来了"), ("bid_1", "出一分"), ("bid_2", "出两分"),
-    ("bid_3", "出三分"), ("bid_4", "出四分"), ("bid_9", "许愿出九分"), ("bid_5_auto", "许愿自动出五分"),
+    ("bid_3", "出三分"), ("bid_4", "出四分"), ("bid_6", "许愿出六分"), ("bid_7", "许愿出七分"),
+    ("bid_8", "许愿出八分"), ("bid_9", "许愿出九分"), ("bid_5_auto", "许愿自动出五分"),
     ("bid_fail", "不行哦"), ("collapse", "已收起"), ("countdown", "倒计时三秒"), ("outbid", "有人出了更高的分"),
     ("roll_start", "同分了，开始掷点"), ("outrolled", "你的点数被超过了"), ("won_bid", "恭喜你，拍到了"),
     ("won_roll", "恭喜你，掷点赢了"), ("auction_end", "拍卖结束"), ("all_sold", "全部装备都拍完了"),
@@ -149,7 +150,7 @@ def lua_str(s):
 
 def pack_lua(addon_path, name, author, version):
     """语音包登记用的 Lua 文件内容。addon_path 形如 Interface\\AddOns\\RaidWish\\voicepack\\"""
-    return ("-- RaidWish 语音包：%s（录音：%s）。使用限制见同目录的 %s。\n"
+    return ("-- RaidWish 语音包：%s（配音：%s）。使用限制见同目录的 %s。\n"
             "RaidWishVoicePack = {\n    path = %s,\n    name = %s,\n    author = %s,\n    version = %s,\n"
             "    license = \"仅限配合 RaidWish 使用；禁止提取、修改、单独分发，禁止用于 AI 训练或声音克隆\",\n}\n"
             % (name, author, LICENSE_FILE, lua_str(addon_path), lua_str(name), lua_str(author), lua_str(version)))
@@ -218,7 +219,7 @@ PUBLIC_SCOPE = (
 LICENSE = """RaidWish 语音包《{name}》授权说明
 ================================
 
-录音：{author}
+配音：{author}
 制作日期：{date}
 
 本语音包中的全部录音，著作权及声音权益归录音者（{author}）所有。

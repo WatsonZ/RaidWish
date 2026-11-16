@@ -29,9 +29,9 @@ if exists("voicepack/VoicePack.lua") then
     Sim.Check(exists("voicepack/VOICE_LICENSE.txt"), "带语音授权说明")
     if pack then
         Sim.Check(pack.path == "Interface\\AddOns\\RaidWish\\voicepack\\", "语音包路径在插件自己的文件夹里")
-        print("  语音包：" .. tostring(pack.name) .. "，录音：" .. tostring(pack.author))
+        print("  语音包：" .. tostring(pack.name) .. "，配音：" .. tostring(pack.author))
         local n, total = 0, 0
-        for _, k in ipairs({ "auction_start", "my_wish", "bid_1", "bid_2", "bid_3", "bid_4", "bid_9", "bid_5_auto", "bid_fail",
+        for _, k in ipairs({ "auction_start", "my_wish", "bid_1", "bid_2", "bid_3", "bid_4", "bid_6", "bid_7", "bid_8", "bid_9", "bid_5_auto", "bid_fail",
             "collapse", "countdown", "outbid", "roll_start", "outrolled", "won_bid", "won_roll", "auction_end", "all_sold" }) do
             total = total + 1
             if exists("voicepack/" .. k .. ".ogg") then n = n + 1 end

@@ -104,8 +104,9 @@ local function Create()
     --   0     物品图标 36 × 36；右侧上行物品名，下行"你许愿了"或阶段说明
     --   -48   倒计时进度条
     --   -62   状态行（当前最高、剩余时间；出错提示临时顶替这一行）
-    --   -84   出分按钮一排 / Roll 按钮
-    --   -120  团员："不要这件"；团长、助理：分隔线 + 主持按钮
+    --   -84   出分按钮 1~4 分 / Roll 按钮
+    --   -118  许愿加分 6~9 分（只有许愿了这件装备的人才有这一排）
+    --   再往下 团员："不要这件"；团长、助理：分隔线 + 主持按钮（位置随上面有没有第二排而变）
     local body = CreateFrame("Frame", nil, popup)
     body:SetPoint("TOPLEFT", popup.head, "BOTTOMLEFT", 14, -12)
     body:SetPoint("TOPRIGHT", popup.head, "BOTTOMRIGHT", -14, -12)
@@ -134,16 +135,23 @@ local function Create()
     popup.err:SetPoint("TOPLEFT", 0, -62)
     popup.err:Hide()
 
-    popup.bids = {}
+    -- 第一排 1~4 分人人可出；第二排 6~9 分是许愿加分，只有许愿了这件装备的人才显示
+    popup.bids, popup.wishBids = {}, {}
     local gap = 6
-    local bw = (inner - gap * 4) / 5
-    for i, n in ipairs({ 1, 2, 3, 4, 9 }) do
+    local bw = (inner - gap * 3) / 4
+    local function BidButton(n, col, y, list)
         local b = W.Button(body, n .. " 分", "normal", bw, 28, function()
             local ok, err = A():BidButton(n)
             if not ok then ShowError(err) end
         end)
-        b:SetPoint("TOPLEFT", (i - 1) * (bw + gap), -84)
-        popup.bids[i] = b
+        b:SetPoint("TOPLEFT", (col - 1) * (bw + gap), y)
+        list[#list + 1] = b
+        return b
+    end
+    for i, n in ipairs({ 1, 2, 3, 4 }) do BidButton(n, i, -84, popup.bids) end
+    for i, n in ipairs({ 6, 7, 8, 9 }) do
+        local b = BidButton(n, i, -118, popup.wishBids)
+        W.Tooltip(b, "许愿出 " .. n .. " 分", "只能出给自己许愿的装备。\n需要自己现有 " .. (n - 5) .. " 分以上。")
     end
     popup.roll = W.Button(body, "Roll", "normal", inner, 28, function()
         local ok, err = A():RollButton()
@@ -242,6 +250,8 @@ function Popup:Refresh()
     local bidding = m.state == "bid" or m.state == "count"
     local rolling = m.state == "roll"
     for _, b in ipairs(popup.bids) do b:SetShown(bidding) end
+    local wishRow = bidding and MyWish(m.item) and true or false
+    for _, b in ipairs(popup.wishBids) do b:SetShown(wishRow) end
     popup.roll:SetShown(rolling and m:InRoll(Me()))
     local officer = IsOfficer()
     popup.pass:SetShown(bidding and not officer)
@@ -251,12 +261,18 @@ function Popup:Refresh()
     popup.early:SetEnabledState(host)
     popup.direct:SetEnabledState(host)
     popup.cancel:SetEnabledState(host)
+    -- 有第二排出分按钮时，下面的按钮整体下移一排
+    local extra = wishRow and 34 or 0
+    popup.pass:ClearAllPoints()
+    popup.pass:SetPoint("TOPLEFT", 0, -122 - extra)
+    popup.ctl:ClearAllPoints()
+    popup.ctl:SetPoint("TOPLEFT", 0, -122 - extra)
     -- 高度 = 标题 34 + 上边距 12 + 内容 + 下边距 14
     local content = 78                                          -- 物品、进度条、状态行
     if officer and (bidding or rolling) then content = 158      -- 出分 / Roll + 主持按钮
     elseif bidding then content = 148                           -- 出分 + 不要这件
     elseif popup.roll:IsShown() then content = 112 end          -- 只有 Roll 按钮
-    popup:SetHeight(34 + 12 + content + 14)
+    popup:SetHeight(34 + 12 + content + extra + 14)
 end
 
 -- 只更新倒计时、进度条和状态文字（拍卖进行中每秒 10 次，不重建其他内容）
@@ -493,7 +509,7 @@ ns.Settings:AddCategory("auction", "拍卖", 40, function(_, L)
     L:Check("语音播报", function() return o.voice end, function(v) o.voice = v end)
     local pack = ns.Voice:Pack()
     if pack then
-        local who = (pack.author and pack.author ~= "") and ("，录音：" .. pack.author) or ""
+        local who = (pack.author and pack.author ~= "") and ("，配音：" .. pack.author) or ""
         L:Check("使用语音包「" .. (pack.name or "语音包") .. "」" .. who, function() return o.voicePack ~= false end,
             function(v) o.voicePack = v end)
         L:Hint("语音包里没有的句子自动用默认语音。录音只限配合本插件使用，详见语音包文件夹里的 VOICE_LICENSE.txt。")

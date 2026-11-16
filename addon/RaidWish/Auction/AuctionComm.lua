@@ -308,9 +308,12 @@ function Auction:CheckOwnBid(score)
     if max > score then return "没出成：已经有人出了更高的分。" end
     local rec = ns.Wish.model:Get(Me())
     local dkp = rec and tonumber(rec.dkp) or 0
-    if score == 9 then
-        if dkp < 4 then return "分数不够" end
-        if not ns.WishModel.WantsItem(rec, { id = model.item }) then return "没出成：9 分只能出给自己许愿的装备。" end
+    if score >= 5 then
+        -- 许愿加分：只能出给自己许愿的装备，自己的分数 + 5 要够
+        if not ns.WishModel.WantsItem(rec, { id = model.item }) then
+            return "没出成：" .. score .. " 分只能出给自己许愿的装备。"
+        end
+        if dkp < score - 5 then return "分数不够" end
     elseif dkp < score then
         return "分数不够"
     end
