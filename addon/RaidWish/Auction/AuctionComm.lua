@@ -487,7 +487,25 @@ local function FromCurrent(sender)
     return FromHost(sender) and model.auctioneer == sender
 end
 
+-- 清空拍卖相关的数据：待拍、拍卖结果、"不要这件"标记；正在进行的拍卖也结束（拍卖方会在团队频道通报取消）
+function Auction:ClearData()
+    if model:InProgress() and model.isAuctioneer then Execute(model:Cancel()) end
+    model:Reset()
+    StopTicker()
+    local d = Data()
+    for _, k in ipairs({ "captured", "results" }) do
+        for i = #d[k], 1, -1 do d[k][i] = nil end
+    end
+    for k in pairs(d.pMarked) do d.pMarked[k] = nil end
+    Changed()
+end
+
 local handlers = {
+    -- 许愿团长清空了全部数据：各端一起清空拍卖数据
+    ACLEAR = function(sender)
+        if sender ~= ns.Wish:LeaderName() then return end
+        Auction:ClearData()
+    end,
     ASTART = function(sender, item)
         if not FromHost(sender) then return end
         item = tonumber(item)
@@ -568,6 +586,12 @@ end)
 
 -- 掉落记录变化会影响待拍数
 ns.Events:On("RW_LOOT_CHANGED", Changed)
+
+-- 清空许愿表时一起清空拍卖数据；许愿团长清空时通知全团
+ns.Events:On("RW_CLEAR_ALL", function()
+    Auction:ClearData()
+    if ns.Wish:IsLeader() then ns.Comm:Send("ACLEAR") end
+end)
 
 ------------------------------------------------------------------------
 -- /xypm

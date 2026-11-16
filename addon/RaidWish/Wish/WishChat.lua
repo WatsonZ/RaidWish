@@ -451,6 +451,24 @@ function WC:InitScores(dkp)
 end
 
 -- 清空许愿表
+-- 界面上的"清空许愿表"：先确认。许愿还在进行中时要先停止许愿（许愿团长在确认框里一起停止；其他人提示去找许愿团长）
+function WC:ConfirmClear()
+    local what = "会清空所有人的许愿和分数、掉落记录、待拍列表和拍卖结果，并同步给全团。"
+    if ns.Wish:InProgress() then
+        if not ns.Wish:IsLeader() then
+            ns.Print("许愿还在进行中，请许愿团长 " .. tostring(ns.Wish:LeaderName()) .. " 先点\"停止许愿\"再清空。")
+            return false
+        end
+        ns.Widgets.Confirm("RESET", "许愿还在进行中，清空前要先停止许愿。\n" .. what .. "\n\n停止许愿并清空吗？", function()
+            WC:Stop()
+            WC:ClearAll()
+        end, { danger = true, okText = "停止许愿并清空" })
+        return true
+    end
+    ns.Widgets.Confirm("RESET", "确定要清空吗？\n" .. what, function() WC:ClearAll() end, { danger = true, okText = "清空" })
+    return true
+end
+
 function WC:ClearAll()
     M():ClearAll()
     ns.Events:Fire("RW_CLEAR_ALL")
@@ -577,7 +595,7 @@ ns.Events:On("GROUP_LEFT", function()
     if Opts().clearOnLeaveMode == "clear" then
         WC:ClearAll()
     else
-        ns.Widgets.Confirm("CONFIRM_RESET", "你已离开团队。要清空许愿表吗？", function() WC:ClearAll() end,
+        ns.Widgets.Confirm("CONFIRM_RESET", "你已离开团队。要清空许愿表吗？\n（许愿、分数、掉落记录、待拍列表和拍卖结果都会清空）", function() WC:ClearAll() end,
             { danger = true, okText = "清空" })
     end
 end)

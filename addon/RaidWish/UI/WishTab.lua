@@ -422,11 +422,10 @@ local function CreateFoot(footLeft)
     end
     -- 清空入口（团长端）：底部右侧的红色小按钮，点后确认
     foot.clear = W.Button(footLeft, "清空许愿表", "danger", "auto", 20, function()
-        W.Confirm("RESET", "确定要清空所有人的许愿和分数吗？此操作会同步给全团。",
-            function() ns.WishChat:ClearAll() end, { danger = true, okText = "清空" })
+        ns.WishChat:ConfirmClear()
     end)
     foot.clear:SetPoint("RIGHT", footLeft, "RIGHT", 0, 0)
-    W.Tooltip(foot.clear, "清空许愿表", "清空所有人的许愿和分数并同步全团（需要再次确认）。\n清空前建议先在 设置 → 数据 导出备份。")
+    W.Tooltip(foot.clear, "清空许愿表", "清空所有人的许愿和分数、掉落记录、待拍列表和拍卖结果，并同步全团（需要再次确认）。\n清空前建议先在 设置 → 数据 导出备份。")
 end
 
 ------------------------------------------------------------------------

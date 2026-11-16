@@ -425,9 +425,8 @@ Settings:AddCategory("data", "数据", 80, function(_, L)
     L:Space(12)
 
     L:Heading("危险操作")
-    L:Action("清空许愿表", "清空所有人的许愿和分数并同步全团，建议先导出", "清空", function()
-        W.Confirm("RESET", "确定要清空所有人的许愿和分数吗？此操作会同步给全团。", function() WC:ClearAll() end,
-            { danger = true, okText = "清空" })
+    L:Action("清空许愿表", "清空许愿、分数、掉落和拍卖记录并同步全团，建议先导出", "清空", function()
+        WC:ConfirmClear()
     end, "danger")
 end)
 

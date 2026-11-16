@@ -95,7 +95,10 @@ local clearBtn = Sim.FindButton(mf, "清空许愿表")
 Sim.Check(clearBtn and clearBtn:IsVisible(), "许愿页底部有\"清空许愿表\"")
 Sim.Click(clearBtn)
 Sim.Check(A.ns.Widgets.lastDialog == "RAIDWISH_RESET", "清空前要确认")
+Sim.Check(A.ns.Wish:InProgress() and A.env.RaidWishDialog.ok._fs._text == "停止许愿并清空", "许愿进行中时清空：确定按钮是\"停止许愿并清空\"")
 Sim.Click(A.env.RaidWishDialog.cancel)
+Sim.Check(A.ns.Wish:InProgress(), "点取消：许愿照常进行、不清空")
+Sim.Check(B.ns.WishChat:ConfirmClear() == false, "非许愿团长在许愿期间不能清空")
 Sim.Click(mf.yield)
 Sim.Check(A.ns.Widgets.lastDialog == "RAIDWISH_RELINQUISH" and A.env.RaidWishDialog:IsShown(), "让出前要确认（插件自己的弹窗）")
 Sim.Click(A.env.RaidWishDialog.cancel)
@@ -606,6 +609,17 @@ for k in pairs(played) do names[#names + 1] = k end
 table.sort(names)
 Sim.Check(#names >= 10, "拍卖过程中播放过的语音：" .. table.concat(names, ", "))
 
+section("清空许愿表时一起清空拍卖数据")
+B.say("看看 " .. L2); Sim.Run(1)
+local wl = Sim.clients[leaderOf(A)]
+Sim.Check(#wl.ns.Auction:Pending() > 0, "（前提）有待拍物品")
+B.ns.DB.main.auction.results[#B.ns.DB.main.auction.results + 1] = { winner = "乙", id = 1, score = 1, ts = 1800000000 }
+wl.ns.WishChat:ClearAll(); Sim.Run(3)
+Sim.Check(#wl.ns.Auction:Pending() == 0, "清空后待拍列表为空")
+Sim.Check(#wl.ns.DB.main.auction.results == 0 and #wl.ns.DB.main.loot == 0, "清空后拍卖结果和掉落记录为空")
+Sim.Check(#B.ns.DB.main.auction.results == 0, "团员那边的拍卖结果也一起清空")
+Sim.Check(not wl.env.RaidWishPendingButton:IsShown(), "清空后\"待拍\"按钮消失")
+
 section("可选语音包")
 local V = lead.ns.Voice
 lead.ns.DB.options.auction.voice = true
@@ -630,7 +644,6 @@ lead.sounds = {}
 for _, k in ipairs({ "bid_6", "bid_7", "bid_8" }) do Sim.Run(2); V:Play(k) end
 Sim.Check(#lead.sounds == 3, "6、7、8 分有默认语音")
 lead.env.RaidWishVoicePack = nil
-for i, p in ipairs(lead.sounds) do print("SND", i, p) end
 Sim.packFiles = nil
 
 ------------------------------------------------------------------------
