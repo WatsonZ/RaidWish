@@ -13,9 +13,41 @@ local CIRCLE_MASK = "Interface\\CharacterFrame\\TempPortraitAlphaMask"
 
 W.Debounce = ns.Debounce
 
+-- 小地图按钮 / 关于页可选的图标：游戏自带的物品图标（和其他插件按钮风格一致），以及插件自带的"许愿星"
+W.ICONS = {
+    { key = "coin",    label = "金币",     path = "Interface\\Icons\\INV_Misc_Coin_17" },
+    { key = "coins",   label = "一摞金币", path = "Interface\\Icons\\INV_Misc_Coin_02" },
+    { key = "gift",    label = "金色礼盒", path = "Interface\\Icons\\INV_Misc_Gift_05" },
+    { key = "chest",   label = "宝箱",     path = "Interface\\Icons\\INV_Box_02" },
+    { key = "scroll",  label = "封印卷轴", path = "Interface\\Icons\\INV_Scroll_11" },
+    { key = "pearl",   label = "许愿宝珠", path = "Interface\\Icons\\INV_Misc_Gem_Pearl_04" },
+    { key = "dice",    label = "骰子",     path = "Interface\\Icons\\INV_Misc_Dice_01" },
+    { key = "coinbag", label = "钱袋",     path = "Interface\\Icons\\INV_Misc_CoinBag_Special" },
+    { key = "star",    label = "许愿星（插件自带）", custom = true },
+}
+W.DEFAULT_ICON = "coin"
+
+function W.IconInfo(key)
+    key = key or (ns.DB and ns.DB.options and ns.DB.options.ui.icon) or W.DEFAULT_ICON
+    for _, it in ipairs(W.ICONS) do if it.key == key then return it end end
+    return W.ICONS[1]
+end
+
+-- 把图标贴到贴图上。游戏图标裁掉一圈自带的边框；贴图找不到时退回插件自带的图标
+function W.ApplyIcon(tex, key)
+    local it = W.IconInfo(key)
+    local path = it.custom and W.Textures.minimapIcon or it.path
+    local ok = tex:SetTexture(path)
+    if ok == false then
+        tex:SetTexture(W.Textures.minimapIcon)
+        it = { custom = true }
+    end
+    if it.custom then tex:SetTexCoord(0, 1, 0, 1) else tex:SetTexCoord(0.07, 0.93, 0.07, 0.93) end
+end
+
 -- 其他界面文件用到的贴图集中在这里
 W.Textures = {
-    minimapIcon = "Interface\\AddOns\\" .. ADDON .. "\\Images\\MinimapButton",
+    minimapIcon = "Interface\\AddOns\\" .. ADDON .. "\\Images\\MinimapButton",   -- 插件自带的"许愿星"
     minimapBorder = "Interface\\Minimap\\MiniMap-TrackingBorder",
     minimapHighlight = "Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight",
 }

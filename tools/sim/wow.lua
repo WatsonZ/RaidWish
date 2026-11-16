@@ -161,6 +161,7 @@ function Sim.NewWidget(kind, parent, name, env)
     function impl.GetCenter() return 0, 0 end
     function impl.CreateTexture(self) return Sim.NewWidget("Texture", self, nil, env) end
     function impl.CreateMaskTexture(self) return Sim.NewWidget("MaskTexture", self, nil, env) end
+    function impl.SetTexture(self, path) self._tex = path return true end
     function impl.CreateFontString(self) return Sim.NewWidget("FontString", self, nil, env) end
     function impl.CreateAnimationGroup(self) return Sim.NewWidget("AnimationGroup", self, nil, env) end
     function impl.CreateAnimation(self) return Sim.NewWidget("Animation", self, nil, env) end
